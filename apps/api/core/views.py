@@ -77,4 +77,4 @@ class MetadataView(APIView):
 
     @extend_schema(tags=["system"], responses={200: MetadataResponse})
     def get(self, request):
-        return Response({"name": "SyntheSift", "version": "0.1.0", "milestone": "M0"})
+        return Response({"name": "SyntheSift", "version": "0.2.0", "milestone": "M1.1"})

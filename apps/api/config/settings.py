@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "core",
+    "identity",
+    "projects",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -99,21 +101,25 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],
+    "DEFAULT_AUTHENTICATION_CLASSES": ["identity.authentication.ApiSessionAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "core.exceptions.exception_handler",
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+    "DEFAULT_THROTTLE_RATES": {"login": "10/min", "registration": "5/hour"},
 }
 SPECTACULAR_SETTINGS = {
     "TITLE": "SyntheSift API",
-    "DESCRIPTION": "Implemented M0 system endpoints. Product endpoints belong to future milestones.",
-    "VERSION": "0.1.0",
+    "DESCRIPTION": "System, session identity, workspace access and project management APIs.",
+    "VERSION": "0.2.0",
     "SERVE_INCLUDE_SCHEMA": False,
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": r"/api/v1",
 }
-CSRF_TRUSTED_ORIGINS = env_csv("DJANGO_CSRF_TRUSTED_ORIGINS")
+CSRF_FAILURE_VIEW = "core.security.csrf_failure"
+CSRF_TRUSTED_ORIGINS = env_csv("DJANGO_CSRF_TRUSTED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+SELF_REGISTRATION_ENABLED = env_bool("SELF_REGISTRATION_ENABLED", APP_ENV != "production")
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.redis.RedisCache", "LOCATION": os.environ.get("CACHE_REDIS_URL", "redis://redis:6379/2")}}
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
