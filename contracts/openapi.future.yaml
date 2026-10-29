@@ -1,0 +1,902 @@
+# DESIGN ONLY. Valid OpenAPI syntax; implement and review operation semantics during milestone M0.
+openapi: 3.1.0
+info:
+  title: SyntheSift REST API — design contract
+  version: 1.0.0
+  description: 'Design-time API shape only. Endpoints are not yet implemented; all
+    private operations require a valid session and CSRF where applicable. Design gaps
+    that must be finalized in M0: pagination, exact upload session semantics, validation
+    failure representation, and CSRF bootstrap.'
+servers:
+- url: /api/v1
+security:
+- CookieSession: []
+components:
+  securitySchemes:
+    CookieSession:
+      type: apiKey
+      in: cookie
+      name: sessionid
+      description: Django session cookie. Unsafe methods additionally require CSRF.
+  schemas:
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          - request_id
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            request_id:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+    JobReference:
+      type: object
+      required:
+      - job_id
+      - status
+      properties:
+        job_id: &id001
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+          - QUEUED
+          - RUNNING
+          - SUCCEEDED
+          - FAILED
+          - CANCELLED
+        resource_id: *id001
+    Project:
+      type: object
+      required:
+      - id
+      - name
+      properties:
+        id: *id001
+        name: &id002
+          type: string
+          minLength: 1
+        workspace_id: *id001
+    Dataset:
+      type: object
+      required:
+      - id
+      - project_id
+      - name
+      properties:
+        id: *id001
+        project_id: *id001
+        name: *id002
+        latest_version_id: *id001
+    Profile:
+      type: object
+      required:
+      - id
+      - dataset_version_id
+      - status
+      properties:
+        id: *id001
+        dataset_version_id: *id001
+        status:
+          type: string
+        row_count:
+          type: integer
+          minimum: 0
+        column_count:
+          type: integer
+          minimum: 0
+        quality_findings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Finding'
+    Finding:
+      type: object
+      required:
+      - id
+      - rule_code
+      - severity
+      - affected_rows
+      properties:
+        id: *id001
+        rule_code:
+          type: string
+        severity:
+          type: string
+          enum:
+          - info
+          - low
+          - medium
+          - high
+          - critical
+        affected_rows:
+          type: integer
+          minimum: 0
+        evidence:
+          type: object
+          additionalProperties: true
+    AIAnalysis:
+      type: object
+      required:
+      - id
+      - profile_id
+      - status
+      properties:
+        id: *id001
+        profile_id: *id001
+        status:
+          type: string
+          enum:
+          - REQUESTED
+          - RUNNING
+          - ACCEPTED
+          - PARTIAL
+          - REJECTED
+          - FAILED
+        prompt_version:
+          type: string
+        model_name:
+          type: string
+        recommendations:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    Plan:
+      type: object
+      required:
+      - id
+      - input_version_id
+      - status
+      - plan_hash
+      properties:
+        id: *id001
+        input_version_id: *id001
+        status:
+          type: string
+          enum:
+          - DRAFT
+          - VALIDATED
+          - PREVIEWED
+          - APPROVED
+          - APPLIED
+          - REJECTED
+          - STALE
+        plan_hash:
+          type: string
+        steps:
+          type: array
+          items:
+            type: object
+    UploadRequest:
+      type: object
+      required:
+      - name
+      properties:
+        name: *id002
+    PlanRequest:
+      type: object
+      required:
+      - input_version_id
+      - steps
+      properties:
+        input_version_id: *id001
+        steps:
+          type: array
+          minItems: 1
+          items:
+            type: object
+    ApprovalRequest:
+      type: object
+      required:
+      - plan_hash
+      - acknowledge_risks
+      properties:
+        plan_hash: *id002
+        acknowledge_risks:
+          type: boolean
+          enum:
+          - true
+    ProjectList:
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        next_cursor:
+          type:
+          - string
+          - 'null'
+    ArtifactDownload:
+      type: object
+      required:
+      - artifact_id
+      - download_url
+      - expires_at
+      properties:
+        artifact_id:
+          type: string
+          format: uuid
+        download_url:
+          type: string
+          format: uri
+          description: Short-lived signed URL (or same-origin authorized location)
+        expires_at:
+          type: string
+          format: date-time
+    PlanValidation:
+      type: object
+      required:
+      - plan_id
+      - valid
+      - policy_version
+      - errors
+      - warnings
+      properties:
+        plan_id:
+          type: string
+          format: uuid
+        valid:
+          type: boolean
+        policy_version:
+          type: string
+        errors:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+    ProfileIssues:
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Finding'
+        next_cursor:
+          type:
+          - string
+          - 'null'
+    Lineage:
+      type: object
+      required:
+      - dataset_version_id
+      - parents
+      - children
+      properties:
+        dataset_version_id:
+          type: string
+          format: uuid
+        parents:
+          type: array
+          items:
+            type: string
+            format: uuid
+        children:
+          type: array
+          items:
+            type: string
+            format: uuid
+paths:
+  /projects:
+    get:
+      tags:
+      - projects
+      summary: List accessible projects
+      operationId: get_projects
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectList'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags:
+      - projects
+      summary: Create project
+      operationId: post_projects
+      responses:
+        '201':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UploadRequest'
+  /projects/{project_id}/datasets/uploads:
+    post:
+      tags:
+      - datasets
+      summary: Create bounded dataset upload and admission job
+      operationId: post_projects_project_id_datasets_uploads
+      responses:
+        '202':
+          description: Accepted result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobReference'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: project_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                name:
+                  type: string
+  /datasets/{dataset_id}:
+    get:
+      tags:
+      - datasets
+      summary: Dataset metadata
+      operationId: get_datasets_dataset_id
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dataset'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: dataset_id
+        in: path
+        required: true
+        schema: *id001
+  /dataset-versions/{version_id}/profiles:
+    post:
+      tags:
+      - profiling
+      summary: Queue deterministic profile
+      operationId: post_dataset_versions_version_id_profiles
+      responses:
+        '202':
+          description: Accepted result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobReference'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: version_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+  /profiles/{profile_id}:
+    get:
+      tags:
+      - profiling
+      summary: Read finished profile
+      operationId: get_profiles_profile_id
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: profile_id
+        in: path
+        required: true
+        schema: *id001
+  /profiles/{profile_id}/ai-analyses:
+    post:
+      tags:
+      - ai
+      summary: Request model recommendations
+      operationId: post_profiles_profile_id_ai_analyses
+      responses:
+        '202':
+          description: Accepted result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobReference'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: profile_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+  /ai-analyses/{analysis_id}:
+    get:
+      tags:
+      - ai
+      summary: Read AI analysis status
+      operationId: get_ai_analyses_analysis_id
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AIAnalysis'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: analysis_id
+        in: path
+        required: true
+        schema: *id001
+  /plans:
+    post:
+      tags:
+      - plans
+      summary: Create typed draft plan
+      operationId: post_plans
+      responses:
+        '201':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanRequest'
+  /plans/{plan_id}:
+    get:
+      tags:
+      - plans
+      summary: Inspect plan
+      operationId: get_plans_plan_id
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: plan_id
+        in: path
+        required: true
+        schema: *id001
+  /plans/{plan_id}/validate:
+    post:
+      tags:
+      - plans
+      summary: Validate plan and policy
+      operationId: post_plans_plan_id_validate
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanValidation'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: plan_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+  /plans/{plan_id}/previews:
+    post:
+      tags:
+      - plans
+      summary: Queue bounded preview
+      operationId: post_plans_plan_id_previews
+      responses:
+        '202':
+          description: Accepted result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobReference'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: plan_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+  /plans/{plan_id}/approve:
+    post:
+      tags:
+      - plans
+      summary: Approve exact hash and risks
+      operationId: post_plans_plan_id_approve
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plan'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: plan_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalRequest'
+  /plans/{plan_id}/executions:
+    post:
+      tags:
+      - plans
+      summary: Queue approved transform
+      operationId: post_plans_plan_id_executions
+      responses:
+        '202':
+          description: Accepted result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobReference'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: plan_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+  /jobs/{job_id}:
+    get:
+      tags:
+      - jobs
+      summary: Read durable job status
+      operationId: get_jobs_job_id
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobReference'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: job_id
+        in: path
+        required: true
+        schema: *id001
+  /dataset-versions/{version_id}/reports:
+    post:
+      tags:
+      - reports
+      summary: Queue report export
+      operationId: post_dataset_versions_version_id_reports
+      responses:
+        '202':
+          description: Accepted result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobReference'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: version_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          minLength: 8
+          maxLength: 128
+  /artifacts/{artifact_id}/download:
+    get:
+      tags:
+      - reports
+      summary: Retrieve authorized artifact metadata
+      operationId: get_artifacts_artifact_id_download
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtifactDownload'
+        4XX:
+          description: Request rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: artifact_id
+        in: path
+        required: true
+        schema: *id001
+  /profiles/{profile_id}/issues:
+    get:
+      tags:
+      - profiling
+      operationId: get_profile_issues
+      summary: Paginated quality findings
+      parameters:
+      - name: profile_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileIssues'
+        4XX:
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /dataset-versions/{version_id}/lineage:
+    get:
+      tags:
+      - datasets
+      operationId: get_version_lineage
+      summary: Version lineage DAG
+      parameters:
+      - name: version_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Lineage'
+        4XX:
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /dataset-versions/{version_id}/profile:
+    get:
+      tags:
+      - profiling
+      operationId: get_version_profile
+      summary: Read latest completed profile
+      parameters:
+      - name: version_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      responses:
+        '200':
+          description: Result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        4XX:
+          description: Rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /auth/login:
+    post:
+      tags:
+      - auth
+      operationId: post_auth_login
+      summary: Start session (server-managed cookie with CSRF flow)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - username
+              - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                  format: password
+      responses:
+        '204':
+          description: Authenticated session cookie issued
+        '401':
+          description: Invalid credentials
+  /auth/logout:
+    post:
+      tags:
+      - auth
+      operationId: post_auth_logout
+      summary: Terminate session
+      responses:
+        '204':
+          description: Session terminated
+        '401':
+          description: Not authenticated

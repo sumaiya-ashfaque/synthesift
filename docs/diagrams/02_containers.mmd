@@ -1,0 +1,11 @@
+flowchart LR
+ Browser[Browser / React] -->|HTTPS| Web[Next.js / Node]
+ Web --> API[Django REST API]
+ API --> DB[(PostgreSQL)]
+ API --> Queue[(Redis / Celery)]
+ Queue <--> Workers[Python workers]
+ Workers --> DB
+ Workers --> Store[(Private object store)]
+ Workers --> Gemini[External Gemini API]
+ API --> Store
+

@@ -1,0 +1,7 @@
+flowchart LR
+  Analyst[Data Analyst] -->|Inspect and propose| DS[SyntheSift]
+  Steward[Data Steward] -->|Approve| DS
+  DS -->|Minimized evidence| Gemini[Gemini API]
+  Gemini -->|Untrusted proposals| DS
+  DS -->|Immutable artifacts| Store[(Private Object Store)]
+

@@ -1,0 +1,21 @@
+flowchart LR
+ subgraph Public[Untrusted public]
+ Browser[Browser / CSV]
+ end
+ subgraph App[Application boundary]
+ API[Next.js / DRF / authz]
+ Worker[Workers / PII minimizer]
+ Validator[DSL policy + executor]
+ Store[(DB + private artifacts)]
+ end
+ subgraph External[External model]
+ Gemini[Gemini API]
+ end
+ Browser --> API
+ API --> Worker
+ Worker -->|Aggregates only| Gemini
+ Gemini -->|Untrusted JSON| Validator
+ Validator -->|Only after approval| Store
+ Worker --> Store
+ API --> Store
+

@@ -1,0 +1,12 @@
+digraph G {rankdir=LR; graph [fontname="DejaVu Sans", bgcolor="white", pad="0.45", nodesep="0.55", ranksep="0.75", splines=polyline, compound=true]; node [fontname="DejaVu Sans", fontsize=12, shape=box, style="rounded,filled", margin="0.22,0.16", penwidth=1.4, color="#AEC0CF", fillcolor="#F2F7FB", fontcolor="#172B43"]; edge [color="#708397", arrowsize=0.8, penwidth=1.5, fontname="DejaVu Sans", fontsize=10, fontcolor="#3F5266"];
+ subgraph cluster_public {label="Untrusted / public"; color="#DEADAD"; style="dashed,rounded"; browser [label="Browser / CSV upload",fillcolor="#FDE7E7"];}
+ subgraph cluster_app {label="Owned application trust boundary"; color="#89ABD0"; style="rounded,dashed"; api [label="Next.js + DRF\nAuthz / quotas",fillcolor="#DFEEFB"]; worker [label="Workers + EvidenceBuilder\nPII minimization",fillcolor="#DFEEFB"]; validator [label="Plan validator + Executor\nNo arbitrary code",fillcolor="#DFF3E6"]; db [label="DB + private artifacts",fillcolor="#EDE8F6"]; }
+ subgraph cluster_external {label="External / untrusted output"; color="#DBBC6B"; style="rounded,dashed"; gemini [label="Gemini API\nUntrusted generation",fillcolor="#FFF2D2"];}
+ browser -> api [label="session, CSV"];
+ api -> worker [label="authorized job"];
+ worker -> db [label="verified version"];
+ worker -> gemini [label="minimized facts only"];
+ gemini -> validator [label="untrusted JSON"];
+ validator -> db [label="approved new version"];
+ api -> db [label="authorized reads"];
+ }

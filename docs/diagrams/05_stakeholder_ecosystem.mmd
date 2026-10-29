@@ -1,0 +1,28 @@
+flowchart LR
+ subgraph Users[Users and data governance]
+ A[Data Analyst]
+ B[Data Engineer]
+ C[Data Steward]
+ D[ML Practitioner]
+ end
+ subgraph Oversight[Buyers and oversight]
+ E[Team Lead / Sponsor]
+ F[Security / Privacy]
+ G[Prospective Buyer]
+ end
+ subgraph Delivery[Delivery and ecosystem]
+ H[Product Owner / Engineering]
+ I[Gemini / Hosting]
+ J[GitHub Evaluator]
+ end
+ A --> DS[SyntheSift]
+ B --> DS
+ C --> DS
+ D --> DS
+ E --> DS
+ F --> DS
+ G --> DS
+ H --> DS
+ I --> DS
+ DS --> J
+

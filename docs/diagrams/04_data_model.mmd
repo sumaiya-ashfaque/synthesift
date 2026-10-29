@@ -1,0 +1,14 @@
+erDiagram
+ WORKSPACE ||--o{ PROJECT : owns
+ PROJECT ||--o{ DATASET : includes
+ DATASET ||--o{ DATASET_VERSION : versions
+ DATASET_VERSION ||--o{ PROFILE_RUN : profiled_by
+ PROFILE_RUN ||--o{ QUALITY_FINDING : finds
+ PROFILE_RUN ||--o{ AI_ANALYSIS_RUN : informs
+ DATASET_VERSION ||--o{ TRANSFORMATION_PLAN : input_for
+ TRANSFORMATION_PLAN ||--o| PLAN_APPROVAL : approved_by
+ PLAN_APPROVAL ||--o| EXECUTION_RUN : authorizes
+ EXECUTION_RUN ||--o| VALIDATION_RUN : checks
+ EXECUTION_RUN ||--o| DATASET_VERSION : creates
+ WORKSPACE ||--o{ AUDIT_EVENT : records
+

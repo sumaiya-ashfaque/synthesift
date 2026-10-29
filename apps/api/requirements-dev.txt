@@ -1,0 +1,6 @@
+-r requirements.txt
+pytest>=8.4,<9
+pytest-django>=4.11,<5
+ruff>=0.13,<0.15
+PyYAML>=6.0,<7
+jsonschema>=4.23,<5

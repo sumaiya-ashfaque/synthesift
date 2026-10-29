@@ -1,0 +1,13 @@
+digraph G {rankdir=LR; graph [fontname="DejaVu Sans", bgcolor="white", pad="0.45", nodesep="0.55", ranksep="0.75", splines=polyline, compound=true]; node [fontname="DejaVu Sans", fontsize=12, shape=box, style="rounded,filled", margin="0.22,0.16", penwidth=1.4, color="#AEC0CF", fillcolor="#F2F7FB", fontcolor="#172B43"]; edge [color="#708397", arrowsize=0.8, penwidth=1.5, fontname="DejaVu Sans", fontsize=10, fontcolor="#3F5266"];
+ a [label="Upload CSV\nQuarantine + checksum"];
+ b [label="Profile + rules\nDeterministic findings"];
+ c [label="Gemini insight\nEvidence-only / verified",fillcolor="#FFF0CD"];
+ d [label="Typed DSL plan\nAllowlist + policy"];
+ e [label="Preview + warn\nNo original mutation",fillcolor="#DFF2E8"];
+ f [label="Explicit approval\nExact plan/input hash",fillcolor="#FCE6D8"];
+ g [label="Async executor\nTemporary output"];
+ h [label="Validation\nBefore / after + invariants",fillcolor="#DFF2E8"];
+ i [label="New immutable version\nExport + audit",fillcolor="#DCEAFE"];
+ a -> b; b -> c; c -> d; d -> e; e -> f; f -> g; g -> h; h -> i [label="pass"];
+ h -> d [label="fail / revise",color="#D36E68",constraint=false];
+ }

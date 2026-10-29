@@ -1,0 +1,85 @@
+openapi: 3.1.0
+info:
+  title: SyntheSift M0 System API
+  version: 0.1.0
+  description: Implemented foundation endpoints only. See openapi.future.yaml for planned product operations.
+servers:
+  - url: /
+paths:
+  /api/v1/health/live:
+    get:
+      operationId: healthLive
+      tags: [system]
+      responses:
+        '200':
+          description: API process is serving requests.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveResponse'
+  /api/v1/health/ready:
+    get:
+      operationId: healthReady
+      tags: [system]
+      responses:
+        '200':
+          description: Database and broker dependencies are available.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadyResponse'
+        '503':
+          description: One or more required dependencies is unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadyResponse'
+  /api/v1/meta:
+    get:
+      operationId: serviceMetadata
+      tags: [system]
+      responses:
+        '200':
+          description: Service build metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetadataResponse'
+components:
+  schemas:
+    LiveResponse:
+      type: object
+      required: [status, service]
+      properties:
+        status:
+          type: string
+          const: ok
+        service:
+          type: string
+    ReadyResponse:
+      type: object
+      required: [status, dependencies]
+      properties:
+        status:
+          type: string
+          enum: [ok, unavailable]
+        dependencies:
+          type: object
+          required: [database, redis]
+          properties:
+            database:
+              type: string
+              enum: [ok, unavailable]
+            redis:
+              type: string
+              enum: [ok, unavailable]
+    MetadataResponse:
+      type: object
+      required: [name, version, milestone]
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        milestone:
+          type: string

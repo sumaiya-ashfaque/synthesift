@@ -1,0 +1,344 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/synthesift/ai-recommendations/v1",
+  "title": "SyntheSift Evidence-Grounded Recommendations",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "recommendations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "recommendations": {
+      "type": "array",
+      "maxItems": 15,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "recommendation_id",
+          "related_issue_ids",
+          "rationale",
+          "priority",
+          "expected_effect",
+          "risk_level",
+          "limitations",
+          "evidence_ids",
+          "proposed_steps",
+          "human_approval_required"
+        ],
+        "properties": {
+          "recommendation_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "related_issue_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 2000
+          },
+          "priority": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "expected_effect": {
+            "type": "string",
+            "maxLength": 1500
+          },
+          "risk_level": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ]
+          },
+          "limitations": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "maxLength": 500
+            },
+            "maxItems": 10
+          },
+          "evidence_ids": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "proposed_steps": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/trim"
+                },
+                {
+                  "$ref": "#/$defs/case"
+                },
+                {
+                  "$ref": "#/$defs/replace"
+                },
+                {
+                  "$ref": "#/$defs/cast"
+                },
+                {
+                  "$ref": "#/$defs/fill"
+                },
+                {
+                  "$ref": "#/$defs/dedupe"
+                },
+                {
+                  "$ref": "#/$defs/clip"
+                }
+              ]
+            }
+          },
+          "human_approval_required": {
+            "const": true
+          }
+        }
+      }
+    },
+    "abstention_reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 2000
+    }
+  },
+  "$defs": {
+    "trim": {
+      "title": "Trim whitespace",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "column",
+        "side"
+      ],
+      "properties": {
+        "op": {
+          "const": "trim_whitespace"
+        },
+        "column": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "side": {
+          "enum": [
+            "both",
+            "left",
+            "right"
+          ]
+        }
+      }
+    },
+    "case": {
+      "title": "Case normalization",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "column",
+        "mode"
+      ],
+      "properties": {
+        "op": {
+          "const": "normalize_case"
+        },
+        "column": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "mode": {
+          "enum": [
+            "lower",
+            "upper",
+            "title"
+          ]
+        }
+      }
+    },
+    "replace": {
+      "title": "Exact mapping",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "column",
+        "mapping"
+      ],
+      "properties": {
+        "op": {
+          "const": "replace_values"
+        },
+        "column": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "mapping": {
+          "type": "object",
+          "minProperties": 1,
+          "maxProperties": 100,
+          "additionalProperties": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      }
+    },
+    "cast": {
+      "title": "Type cast",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "column",
+        "to_type",
+        "on_error"
+      ],
+      "properties": {
+        "op": {
+          "const": "cast_type"
+        },
+        "column": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "to_type": {
+          "enum": [
+            "integer",
+            "float",
+            "string",
+            "date",
+            "boolean"
+          ]
+        },
+        "on_error": {
+          "const": "reject"
+        },
+        "date_format": {
+          "type": "string",
+          "maxLength": 64
+        }
+      }
+    },
+    "fill": {
+      "title": "Fill missing",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "column",
+        "strategy"
+      ],
+      "properties": {
+        "op": {
+          "const": "fill_missing"
+        },
+        "column": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "strategy": {
+          "enum": [
+            "constant",
+            "mean",
+            "median"
+          ]
+        },
+        "value": {
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "dedupe": {
+      "title": "Drop duplicate",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "subset_columns",
+        "keep"
+      ],
+      "properties": {
+        "op": {
+          "const": "drop_duplicate_rows"
+        },
+        "subset_columns": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "keep": {
+          "enum": [
+            "first",
+            "last"
+          ]
+        }
+      }
+    },
+    "clip": {
+      "title": "Clip values",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "op",
+        "column"
+      ],
+      "properties": {
+        "op": {
+          "const": "clip_numeric"
+        },
+        "column": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "min_value": {
+          "type": "number"
+        },
+        "max_value": {
+          "type": "number"
+        }
+      }
+    }
+  }
+}

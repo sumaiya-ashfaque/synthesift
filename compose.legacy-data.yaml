@@ -1,0 +1,9 @@
+# Compatibility profile for locally created M0 volumes before the product rename.
+# Only use with the previous stack stopped and its original .env database values.
+volumes:
+  db_data:
+    name: datasentinel-ai_db_data
+    external: true
+  redis_data:
+    name: datasentinel-ai_redis_data
+    external: true

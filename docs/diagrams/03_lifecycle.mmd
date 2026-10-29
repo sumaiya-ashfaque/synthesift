@@ -1,0 +1,12 @@
+flowchart LR
+ A[CSV upload] --> B[Deterministic profile and rules]
+ B --> C[Gemini evidence-grounded insights]
+ C --> D[Validated typed plan]
+ D --> E[Sample preview + warnings]
+ E --> F{User approves exact hash?}
+ F -->|yes| G[Constrained executor]
+ F -->|no| D
+ G --> H{Full validation passes?}
+ H -->|yes| I[New immutable version + report]
+ H -->|no| D
+

@@ -1,0 +1,12 @@
+digraph G { rankdir=LR; graph [fontname="DejaVu Sans", bgcolor="white", pad="0.45", nodesep="0.55", ranksep="0.75", splines=polyline, compound=true]; node [fontname="DejaVu Sans", fontsize=12, shape=box, style="rounded,filled", margin="0.22,0.16", penwidth=1.4, color="#AEC0CF", fillcolor="#F2F7FB", fontcolor="#172B43"]; edge [color="#708397", arrowsize=0.8, penwidth=1.5, fontname="DejaVu Sans", fontsize=10, fontcolor="#3F5266"];
+ analyst [label="Data Analyst\nFind & review issues",fillcolor="#D9F2EB", color="#58AD97"];
+ steward [label="Data Steward\nReview high-risk plans",fillcolor="#D9F2EB", color="#58AD97"];
+ platform [label="SyntheSift\nData quality + safe remediation",shape=box3d,fillcolor="#DCEAFE", color="#4779C3", fontsize=16];
+ gemini [label="Gemini API\nAdvisory text + typed proposals",fillcolor="#FFF4D8",color="#DBA63D"];
+ storage [label="Private object store\nImmutable dataset artifacts",fillcolor="#EDE6F8",color="#9772C3"];
+ analyst -> platform [label="inspect / propose"];
+ steward -> platform [label="approve"];
+ platform -> gemini [label="minimized evidence"];
+ gemini -> platform [label="untrusted response"];
+ platform -> storage [label="hash-bound files"];
+ }

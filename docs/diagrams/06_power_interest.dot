@@ -1,0 +1,19 @@
+digraph G {
+ graph [bgcolor="white", pad="0.3", fontname="DejaVu Sans"];
+ node [shape=plaintext, fontname="DejaVu Sans"];
+ grid [label=<
+ <TABLE BORDER="0" CELLBORDER="0" CELLSPACING="10" CELLPADDING="15">
+ <TR><TD COLSPAN="3"><FONT POINT-SIZE="18" COLOR="#172B43"><B>Stakeholder power / interest map</B></FONT></TD></TR>
+ <TR>
+  <TD ROWSPAN="2" BGCOLOR="#E5EEF5"><FONT POINT-SIZE="13"><B>POWER</B><BR/>HIGH<BR/><BR/><BR/><BR/><BR/><BR/>LOW</FONT></TD>
+  <TD WIDTH="290" HEIGHT="170" BGCOLOR="#EEE6F8"><FONT POINT-SIZE="17"><B>KEEP SATISFIED</B></FONT><BR/><BR/><FONT POINT-SIZE="13">IT leadership<BR/>Prospective economic buyer</FONT></TD>
+  <TD WIDTH="290" HEIGHT="170" BGCOLOR="#D8EBFC"><FONT POINT-SIZE="17"><B>MANAGE CLOSELY</B></FONT><BR/><BR/><FONT POINT-SIZE="13">Product owner and sponsor<BR/>Data steward; privacy approver</FONT></TD>
+ </TR>
+ <TR>
+  <TD WIDTH="290" HEIGHT="170" BGCOLOR="#EFF3F6"><FONT POINT-SIZE="17"><B>MONITOR</B></FONT><BR/><BR/><FONT POINT-SIZE="13">General project audience<BR/>Adjacent communities</FONT></TD>
+  <TD WIDTH="290" HEIGHT="170" BGCOLOR="#D8F3E8"><FONT POINT-SIZE="17"><B>KEEP INFORMED</B></FONT><BR/><BR/><FONT POINT-SIZE="13">Data analysts and engineers<BR/>ML users; pilot testers</FONT></TD>
+ </TR>
+ <TR><TD></TD><TD COLSPAN="2"><FONT POINT-SIZE="14"><B>INTEREST</B>  LOW  ────────────→  HIGH</FONT></TD></TR>
+ </TABLE>
+ >];
+}
