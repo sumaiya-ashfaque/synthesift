@@ -1,15 +1,17 @@
 openapi: 3.1.0
 info:
-  title: SyntheSift M0 System API
-  version: 0.1.0
-  description: Implemented foundation endpoints only. See openapi.future.yaml for planned product operations.
+  title: SyntheSift M1.1 Session and Workspace API
+  version: 0.2.0
+  description: Implemented system, session authentication, workspaces and workspace-scoped
+    projects.
 servers:
-  - url: /
+- url: /
 paths:
   /api/v1/health/live:
     get:
       operationId: healthLive
-      tags: [system]
+      tags:
+      - system
       responses:
         '200':
           description: API process is serving requests.
@@ -20,7 +22,8 @@ paths:
   /api/v1/health/ready:
     get:
       operationId: healthReady
-      tags: [system]
+      tags:
+      - system
       responses:
         '200':
           description: Database and broker dependencies are available.
@@ -37,7 +40,8 @@ paths:
   /api/v1/meta:
     get:
       operationId: serviceMetadata
-      tags: [system]
+      tags:
+      - system
       responses:
         '200':
           description: Service build metadata.
@@ -45,11 +49,214 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MetadataResponse'
+  /api/v1/auth/csrf:
+    get:
+      operationId: get_api_v1_auth_csrf
+      tags:
+      - auth
+      summary: Set a CSRF cookie for same-origin browser requests.
+      responses:
+        '200':
+          description: Set a CSRF cookie for same-origin browser requests.
+  /api/v1/auth/register:
+    post:
+      operationId: post_api_v1_auth_register
+      tags:
+      - auth
+      summary: Create an account where self-registration is enabled.
+      responses:
+        '201':
+          description: Create an account where self-registration is enabled.
+  /api/v1/auth/login:
+    post:
+      operationId: post_api_v1_auth_login
+      tags:
+      - auth
+      summary: Create an authenticated session.
+      responses:
+        '200':
+          description: Create an authenticated session.
+  /api/v1/auth/logout:
+    post:
+      operationId: post_api_v1_auth_logout
+      tags:
+      - auth
+      summary: Invalidate the current session.
+      responses:
+        '204':
+          description: Invalidate the current session.
+  /api/v1/auth/me:
+    get:
+      operationId: get_api_v1_auth_me
+      tags:
+      - auth
+      summary: Return the authenticated account.
+      responses:
+        '200':
+          description: Return the authenticated account.
+  /api/v1/workspaces:
+    get:
+      operationId: get_api_v1_workspaces
+      tags:
+      - workspaces
+      summary: List workspaces accessible to the user.
+      responses:
+        '200':
+          description: List workspaces accessible to the user.
+    post:
+      operationId: post_api_v1_workspaces
+      tags:
+      - workspaces
+      summary: Create an owner-scoped workspace.
+      responses:
+        '201':
+          description: Create an owner-scoped workspace.
+  /api/v1/workspaces/{workspace_id}:
+    get:
+      operationId: get_api_v1_workspaces_workspace_id
+      tags:
+      - workspaces
+      summary: Fetch an accessible workspace.
+      responses:
+        '200':
+          description: Fetch an accessible workspace.
+    patch:
+      operationId: patch_api_v1_workspaces_workspace_id
+      tags:
+      - workspaces
+      summary: Owner-only workspace update.
+      responses:
+        '200':
+          description: Owner-only workspace update.
+    delete:
+      operationId: delete_api_v1_workspaces_workspace_id
+      tags:
+      - workspaces
+      summary: Owner-only workspace deletion.
+      responses:
+        '204':
+          description: Owner-only workspace deletion.
+    parameters:
+    - name: workspace_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  /api/v1/workspaces/{workspace_id}/members:
+    get:
+      operationId: get_api_v1_workspaces_workspace_id_members
+      tags:
+      - workspaces
+      summary: Owner-only membership list.
+      responses:
+        '200':
+          description: Owner-only membership list.
+    post:
+      operationId: post_api_v1_workspaces_workspace_id_members
+      tags:
+      - workspaces
+      summary: Owner assigns an existing user a role.
+      responses:
+        '201':
+          description: Owner assigns an existing user a role.
+    parameters:
+    - name: workspace_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  /api/v1/workspaces/{workspace_id}/members/{user_id}:
+    delete:
+      operationId: delete_api_v1_workspaces_workspace_id_members_user_id
+      tags:
+      - workspaces
+      summary: Owner revokes membership.
+      responses:
+        '204':
+          description: Owner revokes membership.
+    parameters:
+    - name: workspace_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    - name: user_id
+      in: path
+      required: true
+      schema:
+        type: integer
+  /api/v1/workspaces/{workspace_id}/projects:
+    get:
+      operationId: get_api_v1_workspaces_workspace_id_projects
+      tags:
+      - projects
+      summary: List projects in accessible workspace.
+      responses:
+        '200':
+          description: List projects in accessible workspace.
+    post:
+      operationId: post_api_v1_workspaces_workspace_id_projects
+      tags:
+      - projects
+      summary: Owner or editor creates project.
+      responses:
+        '201':
+          description: Owner or editor creates project.
+    parameters:
+    - name: workspace_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}:
+    get:
+      operationId: get_api_v1_workspaces_workspace_id_projects_project_id
+      tags:
+      - projects
+      summary: View a workspace project.
+      responses:
+        '200':
+          description: View a workspace project.
+    patch:
+      operationId: patch_api_v1_workspaces_workspace_id_projects_project_id
+      tags:
+      - projects
+      summary: Owner or editor updates project.
+      responses:
+        '200':
+          description: Owner or editor updates project.
+    delete:
+      operationId: delete_api_v1_workspaces_workspace_id_projects_project_id
+      tags:
+      - projects
+      summary: Owner deletes project.
+      responses:
+        '204':
+          description: Owner deletes project.
+    parameters:
+    - name: workspace_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    - name: project_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
 components:
   schemas:
     LiveResponse:
       type: object
-      required: [status, service]
+      required:
+      - status
+      - service
       properties:
         status:
           type: string
@@ -58,24 +265,37 @@ components:
           type: string
     ReadyResponse:
       type: object
-      required: [status, dependencies]
+      required:
+      - status
+      - dependencies
       properties:
         status:
           type: string
-          enum: [ok, unavailable]
+          enum:
+          - ok
+          - unavailable
         dependencies:
           type: object
-          required: [database, redis]
+          required:
+          - database
+          - redis
           properties:
             database:
               type: string
-              enum: [ok, unavailable]
+              enum:
+              - ok
+              - unavailable
             redis:
               type: string
-              enum: [ok, unavailable]
+              enum:
+              - ok
+              - unavailable
     MetadataResponse:
       type: object
-      required: [name, version, milestone]
+      required:
+      - name
+      - version
+      - milestone
       properties:
         name:
           type: string

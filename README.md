@@ -4,15 +4,15 @@
 
 *Profile. Detect. Explain. Remediate. Validate.*
 
-[![CI](https://img.shields.io/badge/CI-configured-informational)](#quality-and-verification) [![Release](https://img.shields.io/badge/milestone-M0-blue)](#release-status) [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![CI](https://img.shields.io/badge/CI-configured-informational)](#quality-and-verification) [![Release](https://img.shields.io/badge/milestone-M1.1-blue)](#release-status) [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-> **Implementation status: M0 engineering foundation.** Dataset uploads, profiling, Gemini recommendations, transformation previews, human approvals and exports are planned, **not yet available**. A configured CI workflow is not evidence that CI has passed.
+> **Implementation status: M1.1 identity and project foundations.** Authentication, workspaces and project management are implemented. Dataset uploads, profiling, Gemini recommendations, transformations and exports are not yet available. A configured CI workflow is not evidence that CI has passed.
 
 ## Overview
 
 SyntheSift is designed as a standalone, production-minded data-quality platform. Its product architecture combines deterministic data-quality engines with evidence-grounded Gemini reasoning and a restricted, audited transformation DSL. Source datasets remain immutable; proposed changes are reviewed and validated before execution.
 
-M0 establishes the technical baseline: a Next.js/React frontend, a Django REST Framework API, PostgreSQL, Redis, a Celery worker, health/metadata endpoints, OpenAPI, tests, Docker Compose, and CI infrastructure.
+M0 established the technical baseline. M1.1 adds session authentication, workspace membership and project CRUD with authorization tests.
 
 ## Stack
 
@@ -43,7 +43,7 @@ bash scripts/smoke.sh
 docker compose exec -T api python manage.py verify_worker --timeout 12
 ```
 
-Open `http://localhost:3000` for the foundation dashboard and `http://localhost:3000/api/docs/` for the implemented API schema. API endpoints are also available directly at `http://localhost:8000/api/v1/...` through a loopback-only binding.
+Open `http://localhost:3000` for the product entry page, then register and sign in to manage workspaces and projects and `http://localhost:3000/api/docs/` for the implemented API schema. API endpoints are also available directly at `http://localhost:8000/api/v1/...` through a loopback-only binding.
 
 The `migrate` service completes Django migrations before API and worker startup. Redis and PostgreSQL are internal to the Docker network and have no host port bindings. The browser accesses API endpoints through the Next.js same-origin reverse proxy.
 
@@ -127,3 +127,9 @@ Security concerns and responsible disclosure are documented in [SECURITY.md](SEC
 ## Release status
 
 Current code: **v0.1.0 / M0 rebranded foundation candidate**. The original M0 Docker stack and basic system probes were reported passing in the developer environment; the rebranded stack needs its own startup verification. Dependency lockfiles and green GitHub Actions remain release gates.
+
+## Identity and project setup
+
+Open `/register` for local account creation, then `/login` and `/workspaces`. Public deployment must disable self-registration until account verification and abuse prevention are provided. For permissions, endpoints, tests and remaining risks, see `docs/12_M1_1_IDENTITY_PROJECTS.md`.
+
+Feature branch changes should be reviewed through a pull request and merged only after passing GitHub Actions.

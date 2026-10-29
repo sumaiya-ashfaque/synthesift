@@ -24,7 +24,7 @@ def test_live_is_unauthenticated_and_correlated():
 def test_metadata_exposes_milestone_without_secrets():
     response = APIClient().get("/api/v1/meta")
     assert response.status_code == 200
-    assert response.json() == {"name": "SyntheSift", "version": "0.1.0", "milestone": "M0"}
+    assert response.json() == {"name": "SyntheSift", "version": "0.2.0", "milestone": "M1.1"}
 
 
 def test_ready_reports_dependencies(db):
@@ -52,7 +52,7 @@ def test_ready_fails_closed_when_redis_is_down(db):
 
 
 def test_future_product_routes_are_not_published():
-    response = APIClient().get("/api/v1/projects")
+    response = APIClient().get("/api/v1/datasets")
     assert response.status_code == 404
 
 

@@ -1,5 +1,6 @@
 """Stable error envelope for DRF-managed failures."""
 
+from rest_framework.exceptions import ValidationError
 from rest_framework.views import exception_handler as drf_exception_handler
 
 
@@ -22,4 +23,6 @@ def exception_handler(exc, context):
             "request_id": request_id,
         }
     }
+    if isinstance(exc, ValidationError):
+        response.data["error"]["details"] = exc.detail
     return response
