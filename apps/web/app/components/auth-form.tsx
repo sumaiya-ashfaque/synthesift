@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { request, type Account } from '@/lib/client-api';
+import { Brand } from '@/app/components/brand';
 
 type Props = { mode: 'login' | 'register' };
 
@@ -35,7 +36,7 @@ export function AuthForm({ mode }: Props) {
 
   return (
     <main className="auth-shell">
-      <Link className="brand" href="/"><span className="brand-mark" aria-hidden="true">S</span>SyntheSift</Link>
+      <Brand />
       <section className="auth-panel" aria-labelledby="auth-title">
         <p className="eyebrow">Secure workspace access</p>
         <h1 id="auth-title">{mode === 'login' ? 'Sign in' : 'Create an account'}</h1>
