@@ -1,10 +1,11 @@
 import Link from 'next/link';
+import { Brand } from "@/app/components/brand";
 
 export default function Home() {
   return (
     <main className="site-shell">
       <header className="topbar">
-        <div className="brand"><span className="brand-mark" aria-hidden="true">S</span>SyntheSift</div>
+        <Brand />
         <Link className="secondary-link" href="/login">Sign in</Link>
       </header>
       <section className="hero">
