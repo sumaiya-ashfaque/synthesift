@@ -4,6 +4,7 @@ from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from core.views import LiveView, MetadataView, ReadyView
+from datasets.api import DatasetDetailView, DatasetListView
 from identity.api import (
     CsrfView,
     LoginView,
@@ -18,6 +19,18 @@ from identity.api import (
 from projects.api import ProjectDetailView, ProjectListView
 
 urlpatterns = [
+    
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets",
+        DatasetListView.as_view(),
+        name="project-datasets",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>",
+        DatasetDetailView.as_view(),
+        name="project-dataset-detail",
+    ),
+
     path("api/v1/auth/csrf", CsrfView.as_view(), name="auth-csrf"),
     path("api/v1/auth/register", RegisterView.as_view(), name="auth-register"),
     path("api/v1/auth/login", LoginView.as_view(), name="auth-login"),
