@@ -70,6 +70,11 @@ class Dataset(models.Model):
         blank=True,
     )
 
+    processing_started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         ordering = ["-created_at", "-id"]
         indexes = [
