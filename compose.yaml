@@ -9,9 +9,12 @@ x-api-service: &api-service
     APP_ENV: development
     DATABASE_URL: postgresql://${POSTGRES_USER:-synthesift}:${POSTGRES_PASSWORD:-synthesift_local_only}@db:5432/${POSTGRES_DB:-synthesift}
     REDIS_URL: redis://redis:6379/0
+    DATASET_STORAGE_ROOT: /data/datasets
     CELERY_RESULT_BACKEND: redis://redis:6379/1
     DJANGO_ALLOWED_HOSTS: api,localhost,127.0.0.1
   restart: unless-stopped
+  volumes:
+    - datasets_data:/data/datasets
 
 services:
   db:
@@ -107,3 +110,5 @@ volumes:
     name: ${DB_VOLUME_NAME:-synthesift_db_data}
   redis_data:
     name: ${REDIS_VOLUME_NAME:-synthesift_redis_data}
+  datasets_data:
+    name: ${DATASET_VOLUME_NAME:-synthesift_datasets_data}

@@ -9,7 +9,7 @@ RUN groupadd --system synthesift && useradd --system --gid synthesift --home-dir
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
-RUN mkdir -p /app/staticfiles && chown -R synthesift:synthesift /app
-USER synthesift
+RUN mkdir -p /app/staticfiles /data/datasets \
+    && chown -R synthesift:synthesift /app /data/datasets
 EXPOSE 8000
 CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--access-logfile", "-", "--error-logfile", "-"]

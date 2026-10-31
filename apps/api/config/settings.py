@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     "core",
     "identity",
     "projects",
+    "datasets",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -144,3 +145,12 @@ CELERY_TASK_SOFT_TIME_LIMIT = 90
 CELERY_TASK_ACKS_LATE = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
+DATASET_STORAGE_ROOT = Path(
+    os.environ.get("DATASET_STORAGE_ROOT", "/data/datasets")
+)
+
+DATASET_MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+DATASET_MAX_ROWS = 250_000
+DATASET_MAX_COLUMNS = 100
+DATASET_MAX_CELL_CHARS = 100_000
