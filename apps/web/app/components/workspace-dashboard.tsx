@@ -2,30 +2,62 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { FormEvent, useCallback, useEffect, useState } from 'react';
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useState,
+} from 'react';
+
 import { Brand } from '@/app/components/brand';
-import { request, type Account, type Project, type Workspace } from '@/lib/client-api';
+import { DatasetPanel } from '@/app/components/dataset-panel';
+
+import {
+  request,
+  type Account,
+  type Project,
+  type Workspace,
+} from '@/lib/client-api';
 
 export function WorkspaceDashboard() {
   const router = useRouter();
-  const [account, setAccount] = useState<Account | null>(null);
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [projectSnapshot, setProjectSnapshot] = useState<{
-    workspaceId: string;
-    items: Project[];
-  } | null>(null);
+
+  const [account, setAccount] =
+    useState<Account | null>(null);
+
+  const [workspaces, setWorkspaces] =
+    useState<Workspace[]>([]);
+
+  const [selected, setSelected] =
+    useState<string | null>(null);
+
+  const [projectSnapshot, setProjectSnapshot] =
+    useState<{
+      workspaceId: string;
+      items: Project[];
+    } | null>(null);
+
+  const [selectedProjectId, setSelectedProjectId] =
+    useState<string | null>(null);
+
   const [loading, setLoading] = useState(true);
+  const [projectsLoading, setProjectsLoading] =
+    useState(false);
+
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
   const loadWorkspaces = useCallback(async () => {
-    const items = await request<Workspace[]>('/api/v1/workspaces');
+    const items = await request<Workspace[]>(
+      '/api/v1/workspaces',
+    );
+
     setWorkspaces(items);
+
     setSelected((current) =>
       items.some((item) => item.id === current)
         ? current
-        : items[0]?.id ?? null
+        : items[0]?.id ?? null,
     );
   }, []);
 
@@ -34,46 +66,77 @@ export function WorkspaceDashboard() {
 
     async function load() {
       try {
-        const me = await request<Account>('/api/v1/auth/me');
-        if (!active) return;
+        const me = await request<Account>(
+          '/api/v1/auth/me',
+        );
+
+        if (!active) {
+          return;
+        }
 
         setAccount(me);
         await loadWorkspaces();
       } catch (err) {
-        if (!active) return;
+        if (!active) {
+          return;
+        }
 
         if (
           err instanceof Error &&
-          err.message === 'Sign in to continue.'
+          err.message ===
+            'Sign in to continue.'
         ) {
           router.replace('/login');
         } else {
-          setError('Unable to load your workspaces. Retry the page.');
+          setError(
+            'Unable to load your workspaces. Retry the page.',
+          );
         }
       } finally {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+        }
       }
     }
 
     void load();
+
     return () => {
       active = false;
     };
   }, [loadWorkspaces, router]);
 
   useEffect(() => {
-    if (!selected) return;
+    if (!selected) {
+      return;
+    }
 
     let active = true;
 
-    request<Project[]>(`/api/v1/workspaces/${selected}/projects`)
+    setProjectsLoading(true);
+
+    request<Project[]>(
+      `/api/v1/workspaces/${selected}/projects`,
+    )
       .then((items) => {
         if (active) {
-          setProjectSnapshot({ workspaceId: selected, items });
+          setProjectSnapshot({
+            workspaceId: selected,
+            items,
+          });
         }
       })
       .catch(() => {
-        if (active) setError('Unable to load projects.');
+        if (active) {
+          setError(
+            'Unable to load projects.',
+          );
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setProjectsLoading(false);
+        }
       });
 
     return () => {
@@ -81,12 +144,20 @@ export function WorkspaceDashboard() {
     };
   }, [selected]);
 
-  async function createWorkspace(event: FormEvent<HTMLFormElement>) {
+  async function createWorkspace(
+    event: FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
 
     const form = event.currentTarget;
-    const name = String(new FormData(form).get('name') ?? '').trim();
-    if (!name) return;
+
+    const name = String(
+      new FormData(form).get('name') ?? '',
+    ).trim();
+
+    if (!name) {
+      return;
+    }
 
     setBusy(true);
     setError('');
@@ -95,52 +166,72 @@ export function WorkspaceDashboard() {
       const created = await request<Workspace>(
         '/api/v1/workspaces',
         'POST',
-        { name }
+        { name },
       );
 
       await loadWorkspaces();
+
       setSelected(created.id);
+      setSelectedProjectId(null);
+
       form.reset();
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : 'Unable to create workspace.'
+          : 'Unable to create workspace.',
       );
     } finally {
       setBusy(false);
     }
   }
 
-  async function createProject(event: FormEvent<HTMLFormElement>) {
+  async function createProject(
+    event: FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
-    if (!selected) return;
+
+    if (!selected) {
+      return;
+    }
 
     const form = event.currentTarget;
-    const name = String(new FormData(form).get('name') ?? '').trim();
-    if (!name) return;
+
+    const name = String(
+      new FormData(form).get('name') ?? '',
+    ).trim();
+
+    if (!name) {
+      return;
+    }
 
     setBusy(true);
     setError('');
 
     try {
-      await request<Project>(
+      const created = await request<Project>(
         `/api/v1/workspaces/${selected}/projects`,
         'POST',
-        { name }
+        { name },
       );
 
       const items = await request<Project[]>(
-        `/api/v1/workspaces/${selected}/projects`
+        `/api/v1/workspaces/${selected}/projects`,
       );
 
-      setProjectSnapshot({ workspaceId: selected, items });
+      setProjectSnapshot({
+        workspaceId: selected,
+        items,
+      });
+
+      setSelectedProjectId(created.id);
+
       form.reset();
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
-          : 'Unable to create project.'
+          : 'Unable to create project.',
       );
     } finally {
       setBusy(false);
@@ -151,37 +242,60 @@ export function WorkspaceDashboard() {
     setBusy(true);
 
     try {
-      await request<void>('/api/v1/auth/logout', 'POST');
+      await request<void>(
+        '/api/v1/auth/logout',
+        'POST',
+      );
+
       router.replace('/login');
     } catch {
-      setError('Sign out failed. Please retry.');
+      setError(
+        'Sign out failed. Please retry.',
+      );
+
       setBusy(false);
     }
   }
 
-  const workspace = workspaces.find((item) => item.id === selected);
+  const workspace = workspaces.find(
+    (item) => item.id === selected,
+  );
+
   const projects =
     projectSnapshot?.workspaceId === selected
       ? projectSnapshot.items
       : [];
 
+  const activeProject =
+    projects.find(
+      (item) => item.id === selectedProjectId,
+    ) ?? projects[0];
+
   if (loading) {
     return (
-      <main className="ss-loading-page" role="status">
-        Loading workspaces…
+      <main
+        className="ss-loading-page"
+        role="status"
+      >
+        Loading workspaces...
       </main>
     );
   }
 
   return (
     <div className="ss-app-shell">
-      <aside className="ss-sidebar" aria-label="Workspace navigation">
+      <aside
+        className="ss-sidebar"
+        aria-label="Workspace navigation"
+      >
         <div className="ss-sidebar-brand">
           <Brand />
         </div>
 
         <div className="ss-sidebar-content">
-          <div className="ss-sidebar-label">Workspaces</div>
+          <div className="ss-sidebar-label">
+            Workspaces
+          </div>
 
           <nav
             aria-label="Select workspace"
@@ -192,21 +306,28 @@ export function WorkspaceDashboard() {
                 key={item.id}
                 type="button"
                 className={`ss-workspace-button ${
-                  selected === item.id ? 'is-active' : ''
+                  selected === item.id
+                    ? 'is-active'
+                    : ''
                 }`}
                 aria-current={
-                  selected === item.id ? 'page' : undefined
+                  selected === item.id
+                    ? 'page'
+                    : undefined
                 }
                 onClick={() => {
                   setError('');
                   setSelected(item.id);
+                  setSelectedProjectId(null);
                 }}
               >
                 <span
                   className="ss-workspace-initial"
                   aria-hidden="true"
                 >
-                  {item.name.slice(0, 1).toUpperCase()}
+                  {item.name
+                    .slice(0, 1)
+                    .toUpperCase()}
                 </span>
 
                 <span className="ss-workspace-name">
@@ -260,7 +381,10 @@ export function WorkspaceDashboard() {
         </div>
 
         <div className="ss-sidebar-bottom">
-          <span className="ss-sidebar-label">SyntheSift</span>
+          <span className="ss-sidebar-label">
+            SyntheSift
+          </span>
+
           <p>Data quality workspace</p>
         </div>
       </aside>
@@ -270,15 +394,22 @@ export function WorkspaceDashboard() {
           <div className="ss-breadcrumb">
             <span>Workspaces</span>
             <span aria-hidden="true">/</span>
-            <strong>{workspace?.name ?? 'Overview'}</strong>
+
+            <strong>
+              {workspace?.name ?? 'Overview'}
+            </strong>
           </div>
 
           <div className="ss-user-actions">
             <span
               className="ss-account-label"
-              title={account?.email || account?.username}
+              title={
+                account?.email ||
+                account?.username
+              }
             >
-              {account?.email || account?.username}
+              {account?.email ||
+                account?.username}
             </span>
 
             <button
@@ -292,12 +423,20 @@ export function WorkspaceDashboard() {
           </div>
         </header>
 
-        <main className="ss-app-main" id="main-content">
+        <main
+          className="ss-app-main"
+          id="main-content"
+        >
           <div className="ss-page-heading">
             <div>
-              <p className="ss-kicker">Workspace overview</p>
+              <p className="ss-kicker">
+                Workspace overview
+              </p>
 
-              <h1>{workspace?.name ?? 'Your workspaces'}</h1>
+              <h1>
+                {workspace?.name ??
+                  'Your workspaces'}
+              </h1>
 
               <p className="ss-page-subtitle">
                 {workspace
@@ -314,7 +453,10 @@ export function WorkspaceDashboard() {
           </div>
 
           {error && (
-            <p className="ss-error-banner" role="alert">
+            <p
+              className="ss-error-banner"
+              role="alert"
+            >
               {error}
             </p>
           )}
@@ -327,32 +469,51 @@ export function WorkspaceDashboard() {
               >
                 <div className="ss-overview-card">
                   <span>Projects</span>
-                  <strong>{projects.length}</strong>
-                  <small>In this workspace</small>
+
+                  <strong>
+                    {projectsLoading
+                      ? '—'
+                      : projects.length}
+                  </strong>
+
+                  <small>
+                    In this workspace
+                  </small>
                 </div>
 
                 <div className="ss-overview-card">
                   <span>Your access</span>
+
                   <strong className="ss-overview-text">
                     {workspace.role}
                   </strong>
-                  <small>Workspace permissions</small>
+
+                  <small>
+                    Workspace permissions
+                  </small>
                 </div>
 
                 <div className="ss-overview-card">
                   <span>Created</span>
+
                   <strong className="ss-overview-date">
                     {workspace.created_at
                       ? new Date(
-                          workspace.created_at
-                        ).toLocaleDateString(undefined, {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })
+                          workspace.created_at,
+                        ).toLocaleDateString(
+                          undefined,
+                          {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          },
+                        )
                       : '—'}
                   </strong>
-                  <small>Workspace created</small>
+
+                  <small>
+                    Workspace created
+                  </small>
                 </div>
               </section>
 
@@ -362,13 +523,18 @@ export function WorkspaceDashboard() {
               >
                 <div className="ss-project-panel-header">
                   <div>
-                    <h2 id="ss-project-title">Projects</h2>
+                    <h2 id="ss-project-title">
+                      Projects
+                    </h2>
+
                     <p>
-                      Organize related datasets and analysis work.
+                      Organize related datasets
+                      and analysis work.
                     </p>
                   </div>
 
-                  {workspace.role !== 'viewer' && (
+                  {workspace.role !==
+                    'viewer' && (
                     <a
                       className="ss-small-anchor"
                       href="#ss-create-project"
@@ -378,11 +544,23 @@ export function WorkspaceDashboard() {
                   )}
                 </div>
 
-                {projects.length ? (
+                {projectsLoading ? (
+                  <p
+                    className="ss-dataset-feedback"
+                    role="status"
+                  >
+                    Loading projects...
+                  </p>
+                ) : projects.length ? (
                   <ul className="ss-project-rows">
                     {projects.map((item) => (
                       <li
-                        className="ss-project-row"
+                        className={`ss-project-row ${
+                          activeProject?.id ===
+                          item.id
+                            ? 'ss-project-row-selected'
+                            : ''
+                        }`}
                         key={item.id}
                       >
                         <span
@@ -404,29 +582,53 @@ export function WorkspaceDashboard() {
                         </span>
 
                         <div className="ss-project-row-body">
-                          <strong>{item.name}</strong>
+                          <button
+                            type="button"
+                            className="ss-project-activate"
+                            aria-pressed={
+                              activeProject?.id ===
+                              item.id
+                            }
+                            onClick={() =>
+                              setSelectedProjectId(
+                                item.id,
+                              )
+                            }
+                          >
+                            {item.name}
+                          </button>
 
                           {item.description && (
-                            <p>{item.description}</p>
+                            <p>
+                              {item.description}
+                            </p>
                           )}
                         </div>
 
                         <span className="ss-project-type">
-                          Project
+                          {activeProject?.id ===
+                          item.id
+                            ? 'Selected'
+                            : 'Project'}
                         </span>
                       </li>
                     ))}
                   </ul>
                 ) : (
                   <div className="ss-empty-projects">
-                    <strong>No projects yet</strong>
+                    <strong>
+                      No projects yet
+                    </strong>
+
                     <p>
-                      Create a project to keep related datasets together.
+                      Create a project to keep
+                      related datasets together.
                     </p>
                   </div>
                 )}
 
-                {workspace.role !== 'viewer' && (
+                {workspace.role !==
+                  'viewer' && (
                   <div
                     className="ss-project-create"
                     id="ss-create-project"
@@ -460,16 +662,34 @@ export function WorkspaceDashboard() {
                   </div>
                 )}
               </section>
+
+              {!projectsLoading &&
+                activeProject &&
+                selected && (
+                  <DatasetPanel
+                    key={`${selected}:${activeProject.id}`}
+                    workspaceId={selected}
+                    project={activeProject}
+                    canUpload={
+                      workspace.role !==
+                      'viewer'
+                    }
+                  />
+                )}
             </>
           ) : (
             <section
               className="ss-empty-projects"
               aria-live="polite"
             >
-              <strong>No workspace selected</strong>
+              <strong>
+                No workspace selected
+              </strong>
+
               <p>
-                Choose or create a workspace in the sidebar to
-                manage its projects.
+                Choose or create a workspace
+                in the sidebar to manage
+                its projects.
               </p>
             </section>
           )}

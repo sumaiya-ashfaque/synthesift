@@ -573,3 +573,262 @@
     display: none;
   }
 }
+
+
+/* Dataset management */
+
+.ss-project-activate {
+  display: inline-block;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ss-project-activate:hover {
+  color: #17634f;
+}
+
+.ss-project-activate:focus-visible,
+.ss-datasets-panel button:focus-visible,
+.ss-datasets-panel input:focus-visible,
+.ss-dataset-columns summary:focus-visible {
+  outline: 3px solid #77b5a1;
+  outline-offset: 3px;
+}
+
+.ss-project-row-selected {
+  background: #f0f7f3;
+  box-shadow: inset 3px 0 0 #17634f;
+}
+
+.ss-datasets-panel {
+  margin-top: 24px;
+  padding: 28px;
+  border: 1px solid #dce6df;
+  border-radius: 16px;
+  background: #fff;
+  color: #21392f;
+}
+
+.ss-datasets-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.ss-datasets-heading-row h2 {
+  margin: 4px 0 6px;
+  font-size: 1.45rem;
+  line-height: 1.25;
+}
+
+.ss-datasets-heading-row p:not(.ss-kicker) {
+  margin: 0;
+  color: #607268;
+}
+
+.ss-dataset-upload {
+  padding: 20px;
+  border: 1px solid #dbe7dd;
+  border-radius: 12px;
+  background: #f6faf7;
+  margin-bottom: 24px;
+}
+
+.ss-dataset-upload label {
+  font-weight: 700;
+}
+
+.ss-dataset-upload p {
+  color: #607268;
+  font-size: 0.9rem;
+  margin: 6px 0 16px;
+}
+
+.ss-dataset-upload-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ss-dataset-upload-controls input[type="file"] {
+  min-width: 0;
+  flex: 1 1 210px;
+  padding: 11px;
+  border: 1px solid #cad9cf;
+  border-radius: 9px;
+  background: #fff;
+  color: #21392f;
+  font: inherit;
+}
+
+.ss-dataset-upload-controls button {
+  flex-shrink: 0;
+}
+
+.ss-dataset-notice {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid #b8d7c6;
+  border-radius: 9px;
+  background: #edf8f1;
+  color: #225b41;
+  font-size: 0.9rem;
+}
+
+.ss-dataset-table-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
+.ss-dataset-table-heading h3 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.ss-dataset-table-heading > span {
+  color: #607268;
+  font-size: 0.85rem;
+}
+
+.ss-dataset-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.ss-dataset-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 680px;
+}
+
+.ss-dataset-table th {
+  padding: 12px 10px;
+  background: #f6f8f6;
+  color: #5a6d63;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  text-align: left;
+}
+
+.ss-dataset-table td {
+  padding: 15px 10px;
+  border-bottom: 1px solid #edf0ee;
+  font-size: 0.9rem;
+  vertical-align: top;
+}
+
+.ss-dataset-filename {
+  display: block;
+  max-width: 225px;
+  overflow-wrap: anywhere;
+}
+
+.ss-dataset-table td small {
+  display: block;
+  color: #738178;
+  margin-top: 5px;
+}
+
+.ss-dataset-status {
+  display: inline-flex;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: #f0f2f0;
+  color: #546158;
+}
+
+.ss-dataset-status.is-ready {
+  background: #e3f3e9;
+  color: #216344;
+}
+
+.ss-dataset-status.is-processing {
+  background: #e5f0fd;
+  color: #285b92;
+}
+
+.ss-dataset-status.is-failed {
+  background: #fbe9e6;
+  color: #923f35;
+}
+
+.ss-dataset-status.is-queued {
+  background: #fff2dd;
+  color: #795419;
+}
+
+.ss-dataset-table td .ss-dataset-error {
+  color: #923f35;
+  max-width: 190px;
+}
+
+.ss-dataset-columns {
+  margin-top: 6px;
+  color: #446958;
+}
+
+.ss-dataset-columns summary {
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.ss-dataset-columns div {
+  max-width: 220px;
+  margin-top: 6px;
+  color: #607268;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.ss-dataset-empty,
+.ss-dataset-feedback {
+  padding: 22px;
+  color: #627369;
+  background: #f9fbf9;
+  border-radius: 10px;
+}
+
+.ss-dataset-empty p {
+  margin: 6px 0 0;
+}
+
+.ss-dataset-feedback {
+  margin: 10px 0;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .ss-datasets-panel {
+    padding: 18px;
+  }
+
+  .ss-datasets-heading-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ss-dataset-upload-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ss-dataset-upload-controls input[type="file"] {
+    flex: auto;
+    width: 100%;
+  }
+}
