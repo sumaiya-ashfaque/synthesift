@@ -1,17 +1,21 @@
+
 openapi: 3.1.0
+
 info:
-  title: SyntheSift M1.1 Session and Workspace API
+  title: SyntheSift Implemented API
   version: 0.2.0
-  description: Implemented system, session authentication, workspaces and workspace-scoped
-    projects.
+  description: >-
+    Implemented system, authentication, workspace, project
+    and CSV dataset admission operations.
+
 servers:
-- url: /
+  - url: /
+
 paths:
   /api/v1/health/live:
     get:
       operationId: healthLive
-      tags:
-      - system
+      tags: [system]
       responses:
         '200':
           description: API process is serving requests.
@@ -19,11 +23,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LiveResponse'
+
   /api/v1/health/ready:
     get:
       operationId: healthReady
-      tags:
-      - system
+      tags: [system]
       responses:
         '200':
           description: Database and broker dependencies are available.
@@ -37,11 +41,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReadyResponse'
+
   /api/v1/meta:
     get:
       operationId: serviceMetadata
-      tags:
-      - system
+      tags: [system]
       responses:
         '200':
           description: Service build metadata.
@@ -49,253 +53,364 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MetadataResponse'
+
   /api/v1/auth/csrf:
     get:
       operationId: get_api_v1_auth_csrf
-      tags:
-      - auth
+      tags: [auth]
       summary: Set a CSRF cookie for same-origin browser requests.
       responses:
         '200':
           description: Set a CSRF cookie for same-origin browser requests.
+
   /api/v1/auth/register:
     post:
       operationId: post_api_v1_auth_register
-      tags:
-      - auth
+      tags: [auth]
       summary: Create an account where self-registration is enabled.
       responses:
         '201':
           description: Create an account where self-registration is enabled.
+
   /api/v1/auth/login:
     post:
       operationId: post_api_v1_auth_login
-      tags:
-      - auth
+      tags: [auth]
       summary: Create an authenticated session.
       responses:
         '200':
           description: Create an authenticated session.
+
   /api/v1/auth/logout:
     post:
       operationId: post_api_v1_auth_logout
-      tags:
-      - auth
+      tags: [auth]
       summary: Invalidate the current session.
       responses:
         '204':
           description: Invalidate the current session.
+
   /api/v1/auth/me:
     get:
       operationId: get_api_v1_auth_me
-      tags:
-      - auth
+      tags: [auth]
       summary: Return the authenticated account.
       responses:
         '200':
           description: Return the authenticated account.
+
   /api/v1/workspaces:
     get:
       operationId: get_api_v1_workspaces
-      tags:
-      - workspaces
+      tags: [workspaces]
       summary: List workspaces accessible to the user.
       responses:
         '200':
           description: List workspaces accessible to the user.
+
     post:
       operationId: post_api_v1_workspaces
-      tags:
-      - workspaces
+      tags: [workspaces]
       summary: Create an owner-scoped workspace.
       responses:
         '201':
           description: Create an owner-scoped workspace.
+
   /api/v1/workspaces/{workspace_id}:
+    parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
     get:
       operationId: get_api_v1_workspaces_workspace_id
-      tags:
-      - workspaces
+      tags: [workspaces]
       summary: Fetch an accessible workspace.
       responses:
         '200':
           description: Fetch an accessible workspace.
+
     patch:
       operationId: patch_api_v1_workspaces_workspace_id
-      tags:
-      - workspaces
+      tags: [workspaces]
       summary: Owner-only workspace update.
       responses:
         '200':
           description: Owner-only workspace update.
+
     delete:
       operationId: delete_api_v1_workspaces_workspace_id
-      tags:
-      - workspaces
+      tags: [workspaces]
       summary: Owner-only workspace deletion.
       responses:
         '204':
           description: Owner-only workspace deletion.
-    parameters:
-    - name: workspace_id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
+
   /api/v1/workspaces/{workspace_id}/members:
+    parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
     get:
       operationId: get_api_v1_workspaces_workspace_id_members
-      tags:
-      - workspaces
+      tags: [workspaces]
       summary: Owner-only membership list.
       responses:
         '200':
           description: Owner-only membership list.
+
     post:
       operationId: post_api_v1_workspaces_workspace_id_members
-      tags:
-      - workspaces
+      tags: [workspaces]
       summary: Owner assigns an existing user a role.
       responses:
         '201':
           description: Owner assigns an existing user a role.
-    parameters:
-    - name: workspace_id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
+
   /api/v1/workspaces/{workspace_id}/members/{user_id}:
+    parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+
     delete:
       operationId: delete_api_v1_workspaces_workspace_id_members_user_id
-      tags:
-      - workspaces
+      tags: [workspaces]
       summary: Owner revokes membership.
       responses:
         '204':
           description: Owner revokes membership.
-    parameters:
-    - name: workspace_id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    - name: user_id
-      in: path
-      required: true
-      schema:
-        type: integer
+
   /api/v1/workspaces/{workspace_id}/projects:
+    parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
     get:
       operationId: get_api_v1_workspaces_workspace_id_projects
-      tags:
-      - projects
+      tags: [projects]
       summary: List projects in accessible workspace.
       responses:
         '200':
           description: List projects in accessible workspace.
+
     post:
       operationId: post_api_v1_workspaces_workspace_id_projects
-      tags:
-      - projects
+      tags: [projects]
       summary: Owner or editor creates project.
       responses:
         '201':
           description: Owner or editor creates project.
-    parameters:
-    - name: workspace_id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
+
   /api/v1/workspaces/{workspace_id}/projects/{project_id}:
+    parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
     get:
       operationId: get_api_v1_workspaces_workspace_id_projects_project_id
-      tags:
-      - projects
+      tags: [projects]
       summary: View a workspace project.
       responses:
         '200':
           description: View a workspace project.
+
     patch:
       operationId: patch_api_v1_workspaces_workspace_id_projects_project_id
-      tags:
-      - projects
+      tags: [projects]
       summary: Owner or editor updates project.
       responses:
         '200':
           description: Owner or editor updates project.
+
     delete:
       operationId: delete_api_v1_workspaces_workspace_id_projects_project_id
-      tags:
-      - projects
+      tags: [projects]
       summary: Owner deletes project.
       responses:
         '204':
           description: Owner deletes project.
+
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets:
     parameters:
-    - name: workspace_id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-    - name: project_id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [datasets]
+      operationId: listProjectDatasets
+      summary: List datasets in an accessible project
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: Paginated dataset metadata
+        '401':
+          description: Authentication required
+        '404':
+          description: Workspace or project not found
+
+    post:
+      tags: [datasets]
+      operationId: uploadProjectDataset
+      summary: Admit an immutable CSV source file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Dataset stored with queued status
+        '400':
+          description: Invalid upload
+        '401':
+          description: Authentication required
+        '403':
+          description: Insufficient workspace permissions
+        '404':
+          description: Workspace or project not found
+        '413':
+          description: Upload exceeds the size limit
+        '503':
+          description: Dataset storage unavailable
+
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}:
+    parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: dataset_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
+    get:
+      tags: [datasets]
+      operationId: getProjectDataset
+      summary: Retrieve dataset metadata and admission status
+      responses:
+        '200':
+          description: Dataset metadata
+        '401':
+          description: Authentication required
+        '404':
+          description: Dataset not found
+
 components:
   schemas:
     LiveResponse:
       type: object
       required:
-      - status
-      - service
+        - status
+        - service
       properties:
         status:
           type: string
           const: ok
         service:
           type: string
+
     ReadyResponse:
       type: object
       required:
-      - status
-      - dependencies
+        - status
+        - dependencies
       properties:
         status:
           type: string
           enum:
-          - ok
-          - unavailable
+            - ok
+            - unavailable
         dependencies:
           type: object
           required:
-          - database
-          - redis
+            - database
+            - redis
           properties:
             database:
               type: string
               enum:
-              - ok
-              - unavailable
+                - ok
+                - unavailable
             redis:
               type: string
               enum:
-              - ok
-              - unavailable
+                - ok
+                - unavailable
+
     MetadataResponse:
       type: object
       required:
-      - name
-      - version
-      - milestone
+        - name
+        - version
+        - milestone
       properties:
         name:
           type: string
