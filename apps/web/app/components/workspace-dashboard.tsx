@@ -35,15 +35,13 @@ export function WorkspaceDashboard() {
     useState<{
       workspaceId: string;
       items: Project[];
+      failed?: boolean;
     } | null>(null);
 
   const [selectedProjectId, setSelectedProjectId] =
     useState<string | null>(null);
 
   const [loading, setLoading] = useState(true);
-  const [projectsLoading, setProjectsLoading] =
-    useState(false);
-
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -83,8 +81,7 @@ export function WorkspaceDashboard() {
 
         if (
           err instanceof Error &&
-          err.message ===
-            'Sign in to continue.'
+          err.message === 'Sign in to continue.'
         ) {
           router.replace('/login');
         } else {
@@ -113,8 +110,6 @@ export function WorkspaceDashboard() {
 
     let active = true;
 
-    setProjectsLoading(true);
-
     request<Project[]>(
       `/api/v1/workspaces/${selected}/projects`,
     )
@@ -123,19 +118,19 @@ export function WorkspaceDashboard() {
           setProjectSnapshot({
             workspaceId: selected,
             items,
+            failed: false,
           });
         }
       })
       .catch(() => {
         if (active) {
-          setError(
-            'Unable to load projects.',
-          );
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setProjectsLoading(false);
+          setProjectSnapshot({
+            workspaceId: selected,
+            items: [],
+            failed: true,
+          });
+
+          setError('Unable to load projects.');
         }
       });
 
@@ -222,6 +217,7 @@ export function WorkspaceDashboard() {
       setProjectSnapshot({
         workspaceId: selected,
         items,
+        failed: false,
       });
 
       setSelectedProjectId(created.id);
@@ -265,6 +261,14 @@ export function WorkspaceDashboard() {
     projectSnapshot?.workspaceId === selected
       ? projectSnapshot.items
       : [];
+
+  const projectsLoading =
+    selected !== null &&
+    projectSnapshot?.workspaceId !== selected;
+
+  const projectsFailed =
+    projectSnapshot?.workspaceId === selected &&
+    projectSnapshot.failed === true;
 
   const activeProject =
     projects.find(
@@ -551,6 +555,14 @@ export function WorkspaceDashboard() {
                   >
                     Loading projects...
                   </p>
+                ) : projectsFailed ? (
+                  <p
+                    className="ss-dataset-feedback"
+                    role="alert"
+                  >
+                    Projects could not be loaded.
+                    Reload the page to retry.
+                  </p>
                 ) : projects.length ? (
                   <ul className="ss-project-rows">
                     {projects.map((item) => (
@@ -664,6 +676,7 @@ export function WorkspaceDashboard() {
               </section>
 
               {!projectsLoading &&
+                !projectsFailed &&
                 activeProject &&
                 selected && (
                   <DatasetPanel
