@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from .ingestion import AdmissionError, inspect_csv
 from .models import Dataset
+from .profile_jobs import process_profile
 
 logger = logging.getLogger(__name__)
 
@@ -110,3 +111,12 @@ def ingest_dataset(self, dataset_id: str) -> str:
     )
 
     return "ready" if updated else "superseded"
+
+
+@shared_task(
+    name="datasets.profile_csv",
+    ignore_result=True,
+)
+def profile_csv(dataset_id: str) -> str:
+    """Execute a queued dataset profiling job."""
+    return process_profile(dataset_id)

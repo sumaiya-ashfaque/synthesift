@@ -1,3 +1,6 @@
+
+"""Dataset metadata and persistent profiling models."""
+
 import uuid
 
 from django.conf import settings
@@ -5,6 +8,8 @@ from django.db import models
 
 
 class Dataset(models.Model):
+    """Immutable dataset source and admission metadata."""
+
     class Status(models.TextChoices):
         QUEUED = "queued", "Queued"
         PROCESSING = "processing", "Processing"
@@ -38,6 +43,7 @@ class Dataset(models.Model):
     )
 
     sha256 = models.CharField(max_length=64)
+
     size_bytes = models.PositiveBigIntegerField()
 
     status = models.CharField(
@@ -63,7 +69,9 @@ class Dataset(models.Model):
         blank=True,
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
 
     completed_at = models.DateTimeField(
         null=True,
@@ -77,9 +85,62 @@ class Dataset(models.Model):
 
     class Meta:
         ordering = ["-created_at", "-id"]
+
         indexes = [
             models.Index(
                 fields=["project", "created_at"],
                 name="dataset_project_created",
             ),
         ]
+
+
+class DatasetProfile(models.Model):
+    """Persisted aggregate statistics for an admitted dataset."""
+
+    class Status(models.TextChoices):
+        QUEUED = "queued", "Queued"
+        PROCESSING = "processing", "Processing"
+        READY = "ready", "Ready"
+        FAILED = "failed", "Failed"
+
+    dataset = models.OneToOneField(
+        "datasets.Dataset",
+        on_delete=models.CASCADE,
+        related_name="profile",
+        primary_key=True,
+    )
+
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.QUEUED,
+    )
+
+    schema_version = models.PositiveSmallIntegerField(
+        default=1,
+    )
+
+    result = models.JSONField(default=dict)
+
+    error_code = models.CharField(
+        max_length=40,
+        blank=True,
+    )
+
+    started_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
