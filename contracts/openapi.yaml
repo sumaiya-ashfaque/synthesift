@@ -363,6 +363,57 @@ paths:
         '404':
           description: Dataset not found
 
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/profile:
+    parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: dataset_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [profiling]
+      operationId: getDatasetProfile
+      summary: Retrieve persisted dataset profiling results
+      responses:
+        '200':
+          description: Saved profiling metadata and results
+        '401':
+          description: Authentication required
+        '404':
+          description: Dataset or profile not found
+    post:
+      tags: [profiling]
+      operationId: startDatasetProfile
+      summary: Start or retry dataset profiling
+      responses:
+        '200':
+          description: Profile already completed
+        '202':
+          description: Profile queued or processing
+        '401':
+          description: Authentication required
+        '403':
+          description: Insufficient workspace permissions
+        '404':
+          description: Workspace, project or dataset not found
+        '409':
+          description: Dataset admission not yet complete
+        '503':
+          description: Profiling queue unavailable
+
 components:
   schemas:
     LiveResponse:

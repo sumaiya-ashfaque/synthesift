@@ -5,6 +5,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from core.views import LiveView, MetadataView, ReadyView
 from datasets.api import DatasetDetailView, DatasetListView
+from datasets.profile_api import DatasetProfileView
 from identity.api import (
     CsrfView,
     LoginView,
@@ -47,4 +48,10 @@ urlpatterns = [
     path("api/v1/meta", MetadataView.as_view(), name="meta"),
     path("api/schema/", SpectacularAPIView.as_view(), name="openapi-schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="openapi-schema"), name="api-docs"),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/"
+        "<uuid:project_id>/datasets/<uuid:dataset_id>/profile",
+        DatasetProfileView.as_view(),
+        name="project-dataset-profile",
+    ),
 ]
