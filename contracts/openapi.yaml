@@ -1,9 +1,16 @@
 
+
 openapi: 3.1.0
+
 
 info:
   title: SyntheSift Implemented API
+  title: SyntheSift Implemented API
   version: 0.2.0
+  description: >-
+    Implemented system, authentication, workspace, project
+    and CSV dataset admission operations.
+
   description: >-
     Implemented system, authentication, workspace, project
     and CSV dataset admission operations.
@@ -11,10 +18,13 @@ info:
 servers:
   - url: /
 
+  - url: /
+
 paths:
   /api/v1/health/live:
     get:
       operationId: healthLive
+      tags: [system]
       tags: [system]
       responses:
         '200':
@@ -24,9 +34,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/LiveResponse'
 
+
   /api/v1/health/ready:
     get:
       operationId: healthReady
+      tags: [system]
       tags: [system]
       responses:
         '200':
@@ -42,9 +54,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/ReadyResponse'
 
+
   /api/v1/meta:
     get:
       operationId: serviceMetadata
+      tags: [system]
       tags: [system]
       responses:
         '200':
@@ -54,69 +68,92 @@ paths:
               schema:
                 $ref: '#/components/schemas/MetadataResponse'
 
+
   /api/v1/auth/csrf:
     get:
       operationId: get_api_v1_auth_csrf
+      tags: [auth]
       tags: [auth]
       summary: Set a CSRF cookie for same-origin browser requests.
       responses:
         '200':
           description: Set a CSRF cookie for same-origin browser requests.
 
+
   /api/v1/auth/register:
     post:
       operationId: post_api_v1_auth_register
+      tags: [auth]
       tags: [auth]
       summary: Create an account where self-registration is enabled.
       responses:
         '201':
           description: Create an account where self-registration is enabled.
 
+
   /api/v1/auth/login:
     post:
       operationId: post_api_v1_auth_login
+      tags: [auth]
       tags: [auth]
       summary: Create an authenticated session.
       responses:
         '200':
           description: Create an authenticated session.
 
+
   /api/v1/auth/logout:
     post:
       operationId: post_api_v1_auth_logout
+      tags: [auth]
       tags: [auth]
       summary: Invalidate the current session.
       responses:
         '204':
           description: Invalidate the current session.
 
+
   /api/v1/auth/me:
     get:
       operationId: get_api_v1_auth_me
+      tags: [auth]
       tags: [auth]
       summary: Return the authenticated account.
       responses:
         '200':
           description: Return the authenticated account.
 
+
   /api/v1/workspaces:
     get:
       operationId: get_api_v1_workspaces
+      tags: [workspaces]
       tags: [workspaces]
       summary: List workspaces accessible to the user.
       responses:
         '200':
           description: List workspaces accessible to the user.
 
+
     post:
       operationId: post_api_v1_workspaces
+      tags: [workspaces]
       tags: [workspaces]
       summary: Create an owner-scoped workspace.
       responses:
         '201':
           description: Create an owner-scoped workspace.
 
+
   /api/v1/workspaces/{workspace_id}:
+    parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
     parameters:
       - name: workspace_id
         in: path
@@ -128,26 +165,33 @@ paths:
     get:
       operationId: get_api_v1_workspaces_workspace_id
       tags: [workspaces]
+      tags: [workspaces]
       summary: Fetch an accessible workspace.
       responses:
         '200':
           description: Fetch an accessible workspace.
 
+
     patch:
       operationId: patch_api_v1_workspaces_workspace_id
+      tags: [workspaces]
       tags: [workspaces]
       summary: Owner-only workspace update.
       responses:
         '200':
           description: Owner-only workspace update.
 
+
     delete:
       operationId: delete_api_v1_workspaces_workspace_id
+      tags: [workspaces]
       tags: [workspaces]
       summary: Owner-only workspace deletion.
       responses:
         '204':
           description: Owner-only workspace deletion.
+
+  /api/v1/workspaces/{workspace_id}/members:
 
   /api/v1/workspaces/{workspace_id}/members:
     parameters:
@@ -158,21 +202,33 @@ paths:
           type: string
           format: uuid
 
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
     get:
       operationId: get_api_v1_workspaces_workspace_id_members
+      tags: [workspaces]
       tags: [workspaces]
       summary: Owner-only membership list.
       responses:
         '200':
           description: Owner-only membership list.
 
+
     post:
       operationId: post_api_v1_workspaces_workspace_id_members
+      tags: [workspaces]
       tags: [workspaces]
       summary: Owner assigns an existing user a role.
       responses:
         '201':
           description: Owner assigns an existing user a role.
+
+  /api/v1/workspaces/{workspace_id}/members/{user_id}:
 
   /api/v1/workspaces/{workspace_id}/members/{user_id}:
     parameters:
@@ -188,13 +244,28 @@ paths:
         schema:
           type: integer
 
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: integer
+
     delete:
       operationId: delete_api_v1_workspaces_workspace_id_members_user_id
+      tags: [workspaces]
       tags: [workspaces]
       summary: Owner revokes membership.
       responses:
         '204':
           description: Owner revokes membership.
+
+  /api/v1/workspaces/{workspace_id}/projects:
 
   /api/v1/workspaces/{workspace_id}/projects:
     parameters:
@@ -205,21 +276,33 @@ paths:
           type: string
           format: uuid
 
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
     get:
       operationId: get_api_v1_workspaces_workspace_id_projects
+      tags: [projects]
       tags: [projects]
       summary: List projects in accessible workspace.
       responses:
         '200':
           description: List projects in accessible workspace.
 
+
     post:
       operationId: post_api_v1_workspaces_workspace_id_projects
+      tags: [projects]
       tags: [projects]
       summary: Owner or editor creates project.
       responses:
         '201':
           description: Owner or editor creates project.
+
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}:
 
   /api/v1/workspaces/{workspace_id}/projects/{project_id}:
     parameters:
@@ -236,24 +319,42 @@ paths:
           type: string
           format: uuid
 
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+
     get:
       operationId: get_api_v1_workspaces_workspace_id_projects_project_id
+      tags: [projects]
       tags: [projects]
       summary: View a workspace project.
       responses:
         '200':
           description: View a workspace project.
 
+
     patch:
       operationId: patch_api_v1_workspaces_workspace_id_projects_project_id
+      tags: [projects]
       tags: [projects]
       summary: Owner or editor updates project.
       responses:
         '200':
           description: Owner or editor updates project.
 
+
     delete:
       operationId: delete_api_v1_workspaces_workspace_id_projects_project_id
+      tags: [projects]
       tags: [projects]
       summary: Owner deletes project.
       responses:
@@ -363,11 +464,217 @@ paths:
         '404':
           description: Dataset not found
 
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/profile:
+    parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: project_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: dataset_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [profiling]
+      operationId: getDatasetProfile
+      summary: Retrieve persisted dataset profiling results
+      responses:
+        '200':
+          description: Saved profiling metadata and results
+        '401':
+          description: Authentication required
+        '404':
+          description: Dataset or profile not found
+    post:
+      tags: [profiling]
+      operationId: startDatasetProfile
+      summary: Start or retry dataset profiling
+      responses:
+        '200':
+          description: Profile already completed
+        '202':
+          description: Profile queued or processing
+        '401':
+          description: Authentication required
+        '403':
+          description: Insufficient workspace permissions
+        '404':
+          description: Workspace, project or dataset not found
+        '409':
+          description: Dataset admission not yet complete
+        '503':
+          description: Profiling queue unavailable
+
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/ai-reports:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [ai-remediation]
+      operationId: listDatasetAIReports
+      summary: List recent evidence-grounded AI reports
+      responses:
+        '200': {description: Saved reports}
+        '401': {description: Authentication required}
+        '404': {description: Dataset not found}
+    post:
+      tags: [ai-remediation]
+      operationId: createDatasetAIReport
+      summary: Generate new Gemini remediation proposals after explicit consent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [technique, consent_external_processing]
+              properties:
+                technique: {type: string, enum: [zero_shot, few_shot, stepwise, role_based]}
+                model: {type: string, enum: [gemini-3.5-flash-lite, gemini-3.8-flash, gemini-2.5-flash]}
+                thinking_level: {type: string, enum: [minimal, low, medium, high]}
+                temperature: {type: number, minimum: 0, maximum: 1, nullable: true}
+                max_output_tokens: {type: integer, minimum: 1024, maximum: 8192}
+                consent_external_processing: {type: boolean}
+      responses:
+        '202': {description: Report queued for Gemini processing}
+        '400': {description: Invalid settings or missing consent}
+        '401': {description: Authentication required}
+        '403': {description: Only owners and editors may generate}
+        '404': {description: Dataset not found}
+        '409': {description: Unready profile or ongoing report}
+        '429': {description: Per-dataset request limit}
+        '503': {description: Provider or queue not configured}
+
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/ai-reports/{report_id}:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: report_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [ai-remediation]
+      operationId: getDatasetAIReport
+      summary: Read generated evidence-grounded recommendations
+      responses:
+        '200': {description: Saved report including status and structured suggestions}
+        '401': {description: Authentication required}
+        '404': {description: Report not found}
+
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/remediations:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [remediation]
+      operationId: listRemediations
+      summary: List reviewer previews and derived datasets
+      responses:
+        '200': {description: Project-scoped remediation records}
+        '401': {description: Authentication required}
+        '404': {description: Dataset not found}
+    post:
+      tags: [remediation]
+      operationId: previewRemediation
+      summary: Preview allowlisted operations; no original is changed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [report_id, operations]
+              properties:
+                report_id: {type: string, format: uuid}
+                operations:
+                  type: array
+                  minItems: 1
+                  maxItems: 2
+                  uniqueItems: true
+                  items: {type: string, enum: [trim_whitespace, remove_exact_duplicates]}
+      responses:
+        '201': {description: Saved dry-run preview}
+        '400': {description: Invalid operations}
+        '401': {description: Authentication required}
+        '403': {description: Owner or editor required}
+        '404': {description: Dataset or report not found}
+        '409': {description: Source or profile changed}
+        '422': {description: Invalid source CSV}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/remediations/{run_id}:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: run_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [remediation]
+      operationId: getRemediation
+      summary: Read saved preview or applied lineage
+      responses:
+        '200': {description: Remediation record}
+        '401': {description: Authentication required}
+        '404': {description: Remediation not found}
+    post:
+      tags: [remediation]
+      operationId: approveRemediation
+      summary: Explicitly approve a preview and create a derived dataset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [approve]
+              properties:
+                approve: {type: boolean, enum: [true]}
+      responses:
+        '200': {description: Applied or already-applied remediation}
+        '400': {description: Approval required}
+        '401': {description: Authentication required}
+        '403': {description: Owner or editor required}
+        '404': {description: Remediation not found}
+        '409': {description: Source or profile changed}
+        '422': {description: Invalid source CSV}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/remediations/{run_id}/export:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: run_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [remediation]
+      operationId: exportRemediation
+      summary: Download derived CSV or PDF audit after approval
+      parameters:
+        - name: download
+          in: query
+          required: false
+          schema: {type: string, enum: [csv, pdf], default: pdf}
+      responses:
+        '200': {description: Attachment containing derived CSV or PDF audit}
+        '400': {description: Unsupported format}
+        '401': {description: Authentication required}
+        '404': {description: Applied remediation not found}
+        '422': {description: Derived file integrity failed}
+
 components:
   schemas:
     LiveResponse:
       type: object
       required:
+        - status
+        - service
         - status
         - service
       properties:
@@ -377,9 +684,12 @@ components:
         service:
           type: string
 
+
     ReadyResponse:
       type: object
       required:
+        - status
+        - dependencies
         - status
         - dependencies
       properties:
@@ -388,9 +698,13 @@ components:
           enum:
             - ok
             - unavailable
+            - ok
+            - unavailable
         dependencies:
           type: object
           required:
+            - database
+            - redis
             - database
             - redis
           properties:
@@ -399,15 +713,23 @@ components:
               enum:
                 - ok
                 - unavailable
+                - ok
+                - unavailable
             redis:
               type: string
               enum:
                 - ok
                 - unavailable
 
+                - ok
+                - unavailable
+
     MetadataResponse:
       type: object
       required:
+        - name
+        - version
+        - milestone
         - name
         - version
         - milestone

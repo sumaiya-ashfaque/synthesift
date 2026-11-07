@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "identity",
     "projects",
     "datasets",
+    "ai_remediation",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -154,3 +155,6 @@ DATASET_MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 DATASET_MAX_ROWS = 250_000
 DATASET_MAX_COLUMNS = 100
 DATASET_MAX_CELL_CHARS = 100_000
+DATASET_PROFILE_DISTINCT_LIMIT = 2048
+
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
