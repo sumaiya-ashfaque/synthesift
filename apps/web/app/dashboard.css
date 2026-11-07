@@ -832,3 +832,91 @@
     width: 100%;
   }
 }
+
+/* M2 dataset profiling. Uses the existing SyntheSift product palette. */
+.ss-profile-panel {
+  margin-top: 24px;
+  padding: 26px;
+  border: 1px solid #dbe5df;
+  border-radius: 14px;
+  background: #fff;
+  color: #21392f;
+}
+.ss-profile-heading,
+.ss-profile-subhead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ss-profile-heading h3 { margin: 3px 0 6px; font-size: 1.35rem; }
+.ss-profile-heading p:not(.ss-kicker) { margin: 0; color: #5b6f65; font-size: .9rem; }
+.ss-profile-heading button { flex-shrink: 0; }
+.ss-profile-selection { display: grid; gap: 7px; margin: 22px 0; max-width: 540px; }
+.ss-profile-selection label { font-size: .8rem; font-weight: 700; }
+.ss-profile-selection select {
+  min-height: 44px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 1px solid #cfddd4;
+  border-radius: 8px;
+  background: #fff;
+  color: #21392f;
+  font: inherit;
+}
+.ss-profile-selection select:focus-visible,
+.ss-profile-panel button:focus-visible {
+  outline: 3px solid #78b5a2;
+  outline-offset: 3px;
+}
+.ss-profile-empty { padding: 20px; border-radius: 9px; background: #f6f9f7; color: #5b6f65; }
+.ss-profile-empty p { margin-top: 0; }
+.ss-profile-empty-small { color: #64776c; font-size: .9rem; }
+.ss-profile-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+  gap: 12px;
+  margin: 20px 0 24px;
+}
+.ss-profile-metrics > div { padding: 15px; border: 1px solid #e1eae4; border-radius: 9px; background: #f8faf8; }
+.ss-profile-metrics span { display: block; color: #60776a; font-size: .78rem; }
+.ss-profile-metrics strong { display: block; margin-top: 8px; font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.ss-profile-visuals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.ss-profile-visual { min-width: 0; padding: 18px; border: 1px solid #e1eae4; border-radius: 9px; }
+.ss-profile-visual h4, .ss-profile-findings h4, .ss-profile-columns h4 { font-size: 1rem; margin: 0 0 5px; }
+.ss-profile-visual > p { margin: 0 0 19px; color: #60776a; font-size: .8rem; }
+.ss-profile-bars, .ss-profile-types { list-style: none; margin: 0; padding: 0; display: grid; gap: 13px; }
+.ss-profile-bars li, .ss-profile-types li {
+  display: grid;
+  grid-template-columns: minmax(85px, 1fr) minmax(70px, 2fr) 55px;
+  align-items: center;
+  gap: 10px;
+  font-size: .8rem;
+}
+.ss-profile-bars li > span:first-child, .ss-profile-types li > span:first-child { overflow-wrap: anywhere; }
+.ss-profile-bars strong, .ss-profile-types strong { text-align: right; font-variant-numeric: tabular-nums; }
+.ss-profile-bar-track { height: 9px; border-radius: 99px; overflow: hidden; background: #e8f0e9; }
+.ss-profile-bar-track > span { display: block; height: 100%; border-radius: inherit; background: #17634f; }
+.ss-profile-findings, .ss-profile-columns { margin-top: 24px; }
+.ss-profile-subhead span { font-size: .8rem; color: #60776a; }
+.ss-profile-finding-list { list-style: none; margin: 12px 0; padding: 0; display: grid; gap: 8px; }
+.ss-profile-finding-list li { display: flex; align-items: baseline; gap: 12px; border: 1px solid #e7ece8; border-radius: 8px; padding: 12px; }
+.ss-profile-finding-list strong { font-size: .86rem; }
+.ss-profile-finding-list p { font-size: .83rem; margin: 4px 0 0; color: #586b60; }
+.ss-profile-severity { display: inline-block; min-width: 64px; text-align: center; padding: 3px 7px; border-radius: 15px; font-size: .72rem; font-weight: 700; text-transform: capitalize; }
+.ss-profile-severity.is-high { background: #fce6e5; color: #973c3a; }
+.ss-profile-severity.is-warning { background: #fff0d8; color: #825b13; }
+.ss-profile-severity.is-info { background: #e9f0f7; color: #365979; }
+.ss-profile-findings > small { display: block; margin-top: 12px; color: #64776c; }
+.ss-profile-table-scroll { overflow-x: auto; margin-top: 12px; }
+.ss-profile-columns table { width: 100%; min-width: 690px; border-collapse: collapse; font-size: .83rem; }
+.ss-profile-columns th { text-align: left; font-weight: 650; background: #f6f8f6; color: #587064; }
+.ss-profile-columns th, .ss-profile-columns td { padding: 12px 10px; border-bottom: 1px solid #e8eeea; vertical-align: top; }
+.ss-profile-columns td:first-child { overflow-wrap: anywhere; max-width: 190px; }
+@media (max-width: 940px) { .ss-profile-visuals { grid-template-columns: 1fr; } }
+@media (max-width: 640px) {
+  .ss-profile-panel { padding: 18px; }
+  .ss-profile-heading { align-items: stretch; flex-direction: column; }
+  .ss-profile-bars li, .ss-profile-types li { grid-template-columns: minmax(65px, 1fr) minmax(55px, 1fr) 48px; gap: 7px; }
+}

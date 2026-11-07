@@ -2,6 +2,8 @@
 """Deterministic, bounded profiling of admitted CSV datasets."""
 
 import csv
+import hashlib
+import json
 import re
 from dataclasses import dataclass, field
 from datetime import date
@@ -158,6 +160,8 @@ def profile_dataset(dataset: Dataset) -> dict:
     ]
 
     row_count = 0
+    seen_rows: set[bytes] = set()
+    duplicate_rows = 0
 
     with storage_path(dataset.storage_key).open(
         "r",
@@ -172,6 +176,13 @@ def profile_dataset(dataset: Dataset) -> dict:
                 raise AdmissionError("source_changed")
 
             row_count += 1
+            fingerprint = hashlib.sha256(
+                json.dumps(row, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+            ).digest()
+            if fingerprint in seen_rows:
+                duplicate_rows += 1
+            else:
+                seen_rows.add(fingerprint)
 
             for accumulator, value in zip(
                 accumulators, row, strict=True
@@ -188,6 +199,7 @@ def profile_dataset(dataset: Dataset) -> dict:
 
     return {
         "row_count": row_count,
+        "duplicate_rows": duplicate_rows,
         "column_count": len(columns),
         "missing_cells": sum(
             item.missing_count for item in accumulators

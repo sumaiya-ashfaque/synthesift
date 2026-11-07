@@ -9,6 +9,7 @@ from django.utils import timezone
 from .ingestion import AdmissionError
 from .models import Dataset, DatasetProfile
 from .profiling import profile_dataset
+from .quality import assess_quality
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,7 @@ def process_profile(dataset_id: str) -> str:
 
     try:
         summary = profile_dataset(record.dataset)
+        summary["quality"] = assess_quality(summary)
 
     except AdmissionError as exc:
         return _fail_profile(dataset_id, exc.code)

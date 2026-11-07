@@ -1,6 +1,7 @@
 
 'use client';
 
+import { DatasetProfilePanel } from '@/app/components/dataset-profile-panel';
 import {
   FormEvent,
   useCallback,
@@ -482,6 +483,12 @@ export function DatasetPanel({
           every 5 seconds.
         </p>
       )}
+      <DatasetProfilePanel
+        workspaceId={workspaceId}
+        projectId={project.id}
+        datasets={page?.results ?? []}
+        canProfile={canUpload}
+      />
     </section>
   );
 }
