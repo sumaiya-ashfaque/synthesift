@@ -17,9 +17,9 @@ from rest_framework.views import APIView
 
 from datasets.api import authorized_project
 from datasets.ingestion import AdmissionError, inspect_csv
+from datasets.models import Dataset, DatasetProfile
 from datasets.profiling import profile_dataset
 from datasets.quality import assess_quality
-from datasets.models import Dataset, DatasetProfile
 from datasets.storage import save_upload, storage_path
 from identity.policy import require_role
 

@@ -10,7 +10,6 @@ from django.conf import settings
 from datasets.ingestion import inspect_csv
 from datasets.storage import storage_path
 
-
 ALLOWED_OPERATIONS = ("trim_whitespace", "remove_exact_duplicates")
 
 
