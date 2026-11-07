@@ -414,62 +414,6 @@ paths:
         '503':
           description: Profiling queue unavailable
 
-components:
-  schemas:
-    LiveResponse:
-      type: object
-      required:
-        - status
-        - service
-      properties:
-        status:
-          type: string
-          const: ok
-        service:
-          type: string
-
-    ReadyResponse:
-      type: object
-      required:
-        - status
-        - dependencies
-      properties:
-        status:
-          type: string
-          enum:
-            - ok
-            - unavailable
-        dependencies:
-          type: object
-          required:
-            - database
-            - redis
-          properties:
-            database:
-              type: string
-              enum:
-                - ok
-                - unavailable
-            redis:
-              type: string
-              enum:
-                - ok
-                - unavailable
-
-    MetadataResponse:
-      type: object
-      required:
-        - name
-        - version
-        - milestone
-      properties:
-        name:
-          type: string
-        version:
-          type: string
-        milestone:
-          type: string
-
   /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/ai-reports:
     parameters:
       - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
@@ -525,3 +469,59 @@ components:
         '200': {description: Saved report including status and structured suggestions}
         '401': {description: Authentication required}
         '404': {description: Report not found}
+
+components:
+  schemas:
+    LiveResponse:
+      type: object
+      required:
+        - status
+        - service
+      properties:
+        status:
+          type: string
+          const: ok
+        service:
+          type: string
+
+    ReadyResponse:
+      type: object
+      required:
+        - status
+        - dependencies
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+            - unavailable
+        dependencies:
+          type: object
+          required:
+            - database
+            - redis
+          properties:
+            database:
+              type: string
+              enum:
+                - ok
+                - unavailable
+            redis:
+              type: string
+              enum:
+                - ok
+                - unavailable
+
+    MetadataResponse:
+      type: object
+      required:
+        - name
+        - version
+        - milestone
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+        milestone:
+          type: string
