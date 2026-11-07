@@ -3,6 +3,7 @@
 from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+from ai_remediation.api import AIReportDetailView, AIReportListView
 from core.views import LiveView, MetadataView, ReadyView
 from datasets.api import DatasetDetailView, DatasetListView
 from datasets.profile_api import DatasetProfileView
@@ -53,5 +54,17 @@ urlpatterns = [
         "<uuid:project_id>/datasets/<uuid:dataset_id>/profile",
         DatasetProfileView.as_view(),
         name="project-dataset-profile",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/"
+        "<uuid:project_id>/datasets/<uuid:dataset_id>/ai-reports",
+        AIReportListView.as_view(),
+        name="dataset-ai-reports",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/"
+        "<uuid:project_id>/datasets/<uuid:dataset_id>/ai-reports/<uuid:report_id>",
+        AIReportDetailView.as_view(),
+        name="dataset-ai-report-detail",
     ),
 ]

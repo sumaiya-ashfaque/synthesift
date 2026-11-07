@@ -3,6 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { DatasetProfilePanel } from '../app/components/dataset-profile-panel';
 import { request, type Dataset } from '../lib/client-api';
+vi.mock('@/app/components/ai-remediation-panel', () => ({
+  AIRemediationPanel: () => null,
+}));
 
 vi.mock('../lib/client-api', () => ({ request: vi.fn() }));
 

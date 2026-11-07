@@ -469,3 +469,59 @@ components:
           type: string
         milestone:
           type: string
+
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/ai-reports:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [ai-remediation]
+      operationId: listDatasetAIReports
+      summary: List recent evidence-grounded AI reports
+      responses:
+        '200': {description: Saved reports}
+        '401': {description: Authentication required}
+        '404': {description: Dataset not found}
+    post:
+      tags: [ai-remediation]
+      operationId: createDatasetAIReport
+      summary: Generate new Gemini remediation proposals after explicit consent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [technique, consent_external_processing]
+              properties:
+                technique: {type: string, enum: [zero_shot, few_shot, stepwise, role_based]}
+                model: {type: string, enum: [gemini-3.5-flash-lite, gemini-3.8-flash, gemini-2.5-flash]}
+                thinking_level: {type: string, enum: [minimal, low, medium, high]}
+                temperature: {type: number, minimum: 0, maximum: 1, nullable: true}
+                max_output_tokens: {type: integer, minimum: 1024, maximum: 8192}
+                consent_external_processing: {type: boolean}
+      responses:
+        '202': {description: Report queued for Gemini processing}
+        '400': {description: Invalid settings or missing consent}
+        '401': {description: Authentication required}
+        '403': {description: Only owners and editors may generate}
+        '404': {description: Dataset not found}
+        '409': {description: Unready profile or ongoing report}
+        '429': {description: Per-dataset request limit}
+        '503': {description: Provider or queue not configured}
+
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/ai-reports/{report_id}:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: report_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [ai-remediation]
+      operationId: getDatasetAIReport
+      summary: Read generated evidence-grounded recommendations
+      responses:
+        '200': {description: Saved report including status and structured suggestions}
+        '401': {description: Authentication required}
+        '404': {description: Report not found}

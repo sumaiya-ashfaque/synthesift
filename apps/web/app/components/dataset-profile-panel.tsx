@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { AIRemediationPanel } from '@/app/components/ai-remediation-panel';
+
 import { request, type Dataset } from '@/lib/client-api';
 
 type ColumnProfile = {
@@ -393,6 +395,15 @@ export function DatasetProfilePanel({
         </div>
       ) : (
         <p className="ss-profile-empty">No profiling result is available.</p>
+      )}
+      {result && selected && (
+        <AIRemediationPanel
+          key={`${workspaceId}:${projectId}:${selected.id}`}
+          workspaceId={workspaceId}
+          projectId={projectId}
+          datasetId={selected.id}
+          canRun={canProfile}
+        />
       )}
     </section>
   );
