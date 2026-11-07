@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 
+import { RemediationWorkflowPanel } from '@/app/components/remediation-workflow-panel';
 import { request } from '@/lib/client-api';
 
 type Evidence = {
@@ -246,6 +247,14 @@ export function AIRemediationPanel({ workspaceId, projectId, datasetId, canRun }
               <ul>{current.result.limitations.map((item, index) => <li key={index}>{item}</li>)}</ul>
             </div>
           )}
+          <RemediationWorkflowPanel
+            key={`${workspaceId}:${projectId}:${datasetId}:${current.id}`}
+            workspaceId={workspaceId}
+            projectId={projectId}
+            datasetId={datasetId}
+            reportId={current.id}
+            canApply={canRun}
+          />
         </div>
       )}
     </section>

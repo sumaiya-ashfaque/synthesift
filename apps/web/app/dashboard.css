@@ -947,3 +947,24 @@
 .ss-ai-limitations ul { padding-left: 22px; }
 .ss-ai-panel button:focus-visible, .ss-ai-panel input:focus-visible, .ss-ai-panel select:focus-visible { outline: 3px solid #77b5a1; outline-offset: 2px; }
 @media (max-width: 680px) { .ss-ai-panel { padding: 16px; } .ss-ai-heading { flex-direction: column; } .ss-ai-fields { grid-template-columns: 1fr; } }
+
+/* Controlled remediation, consistent with SyntheSift's restrained dashboard */
+.ss-remediation { margin-top: 26px; padding-top: 22px; border-top: 1px solid #dbe5df; }
+.ss-remediation-heading { display:flex; justify-content:space-between; gap:16px; align-items:flex-start; }
+.ss-remediation-heading h4 { margin:0 0 6px; font-size:1.05rem; color:#182a24; }
+.ss-remediation-heading p { margin:0 0 16px; color:#5b6f65; line-height:1.6; }
+.ss-remediation-actions, .ss-remediation-preview { border:1px solid #dbe5df; border-radius:11px; padding:18px; margin:14px 0; background:#f8faf8; }
+.ss-remediation-actions label, .ss-remediation-approval label { display:flex; gap:12px; align-items:flex-start; padding:9px 0; line-height:1.5; }
+.ss-remediation-actions input, .ss-remediation-approval input { margin-top:4px; flex-shrink:0; accent-color:#17634f; }
+.ss-remediation-actions button { margin-top:12px; }
+.ss-remediation-preview table { border-collapse:collapse; width:100%; margin:12px 0; }
+.ss-remediation-preview th, .ss-remediation-preview td { padding:9px 10px; border-bottom:1px solid #dbe5df; text-align:left; }
+.ss-remediation-preview thead th { background:#eaf3ee; }
+.ss-remediation-preview ul { padding-left:20px; color:#5b6f65; }
+.ss-remediation-approval { border-top:1px solid #dbe5df; margin-top:14px; padding-top:12px; }
+.ss-remediation-downloads { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+.ss-remediation-downloads p { width:100%; margin:3px 0; overflow-wrap:anywhere; }
+.ss-remediation-downloads a { display:inline-block; padding:10px 14px; border:1px solid #17634f; border-radius:8px; color:#17634f; text-decoration:none; }
+.ss-remediation-downloads a:hover { background:#eaf3ee; }
+.ss-remediation :is(button, a, input):focus-visible { outline:3px solid #75b69b; outline-offset:3px; }
+@media(max-width:640px) { .ss-remediation-heading { flex-direction:column; } .ss-remediation-actions, .ss-remediation-preview { padding:12px; } }

@@ -4,6 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AIRemediationPanel } from '../app/components/ai-remediation-panel';
 import { request } from '../lib/client-api';
 
+vi.mock('../app/components/remediation-workflow-panel', () => ({
+  RemediationWorkflowPanel: () => null,
+}));
+
 vi.mock('../lib/client-api', () => ({ request: vi.fn() }));
 
 const props = {

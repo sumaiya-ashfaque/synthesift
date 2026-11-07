@@ -470,6 +470,103 @@ paths:
         '401': {description: Authentication required}
         '404': {description: Report not found}
 
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/remediations:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [remediation]
+      operationId: listRemediations
+      summary: List reviewer previews and derived datasets
+      responses:
+        '200': {description: Project-scoped remediation records}
+        '401': {description: Authentication required}
+        '404': {description: Dataset not found}
+    post:
+      tags: [remediation]
+      operationId: previewRemediation
+      summary: Preview allowlisted operations; no original is changed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [report_id, operations]
+              properties:
+                report_id: {type: string, format: uuid}
+                operations:
+                  type: array
+                  minItems: 1
+                  maxItems: 2
+                  uniqueItems: true
+                  items: {type: string, enum: [trim_whitespace, remove_exact_duplicates]}
+      responses:
+        '201': {description: Saved dry-run preview}
+        '400': {description: Invalid operations}
+        '401': {description: Authentication required}
+        '403': {description: Owner or editor required}
+        '404': {description: Dataset or report not found}
+        '409': {description: Source or profile changed}
+        '422': {description: Invalid source CSV}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/remediations/{run_id}:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: run_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [remediation]
+      operationId: getRemediation
+      summary: Read saved preview or applied lineage
+      responses:
+        '200': {description: Remediation record}
+        '401': {description: Authentication required}
+        '404': {description: Remediation not found}
+    post:
+      tags: [remediation]
+      operationId: approveRemediation
+      summary: Explicitly approve a preview and create a derived dataset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [approve]
+              properties:
+                approve: {type: boolean, enum: [true]}
+      responses:
+        '200': {description: Applied or already-applied remediation}
+        '400': {description: Approval required}
+        '401': {description: Authentication required}
+        '403': {description: Owner or editor required}
+        '404': {description: Remediation not found}
+        '409': {description: Source or profile changed}
+        '422': {description: Invalid source CSV}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/remediations/{run_id}/export:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: run_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [remediation]
+      operationId: exportRemediation
+      summary: Download derived CSV or PDF audit after approval
+      parameters:
+        - name: download
+          in: query
+          required: false
+          schema: {type: string, enum: [csv, pdf], default: pdf}
+      responses:
+        '200': {description: Attachment containing derived CSV or PDF audit}
+        '400': {description: Unsupported format}
+        '401': {description: Authentication required}
+        '404': {description: Applied remediation not found}
+        '422': {description: Derived file integrity failed}
+
 components:
   schemas:
     LiveResponse:
