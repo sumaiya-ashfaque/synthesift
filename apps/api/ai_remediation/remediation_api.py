@@ -233,4 +233,6 @@ class RemediationExportView(APIView):
                 as_attachment=True, filename=f"{filename}.csv",
             )
         response["X-Content-Type-Options"] = "nosniff"
+        response["Cache-Control"] = "private, no-store, max-age=0"
+        response["Pragma"] = "no-cache"
         return response

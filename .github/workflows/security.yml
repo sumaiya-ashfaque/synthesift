@@ -1,0 +1,25 @@
+name: Security hygiene
+
+on:
+  push:
+    branches: [main, 'feat/**', 'fix/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tracked-file-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check tracked files for high-confidence secrets
+        run: python scripts/check_repo_secrets.py
+      - name: Test the secret checker
+        run: python -m unittest discover -s scripts/tests -p 'test_*.py'

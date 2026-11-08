@@ -1,0 +1,1 @@
+"""AI report recovery entrypoints."""
