@@ -1,3 +1,5 @@
+import { apiErrorMessage } from './error-copy';
+
 
 export type Account = {
   id: number;
@@ -130,7 +132,7 @@ export async function request<T>(
     }
 
     throw new Error(
-      `Request failed (${response.status}). Check the input and try again.`,
+      apiErrorMessage(response.status, response.headers.get('X-Request-ID')),
     );
   }
 
@@ -233,7 +235,7 @@ export async function uploadDataset(
     }
 
     throw new Error(
-      `Upload failed (${response.status}). Please retry.`,
+      apiErrorMessage(response.status, response.headers.get('X-Request-ID'), 'upload'),
     );
   }
 

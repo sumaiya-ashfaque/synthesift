@@ -129,9 +129,11 @@ def test_preview_and_explicit_approval_create_immutable_derived_dataset(scenario
     pdf = owner.get(f"{endpoint}/export?download=pdf")
     assert pdf.status_code == 200
     assert pdf["Content-Type"] == "application/pdf"
+    assert pdf["Cache-Control"] == "private, no-store, max-age=0"
     assert bytes(pdf.content).startswith(b"%PDF")
     csv_response = owner.get(f"{endpoint}/export?download=csv")
     assert csv_response.status_code == 200
+    assert csv_response["Cache-Control"] == "private, no-store, max-age=0"
     assert b"".join(csv_response.streaming_content) == b"name,code\nAlice,X\nBob,Y\n"
     assert RemediationRun.objects.filter(dataset=scenario["dataset"]).count() == 1
 
