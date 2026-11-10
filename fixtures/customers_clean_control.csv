@@ -1,0 +1,6 @@
+customer_code,region,age,monthly_spend_eur,signup_date,account_status
+C2001,North,24,65.50,2026-03-01,active
+C2002,South,31,120.00,2026-03-02,active
+C2003,East,27,30.00,2026-03-03,active
+C2004,West,42,199.00,2026-03-04,inactive
+C2005,North,19,10.00,2026-03-05,active

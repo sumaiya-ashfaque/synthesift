@@ -10,7 +10,7 @@ from datasets.models import DatasetProfile
 from .evidence import evidence_from_profile, profile_digest
 from .gemini import GeminiFailure, generate_json
 from .models import AIReport
-from .prompts import make_prompt
+from .prompts import make_evidence_repair_prompt, make_prompt
 from .validation import InvalidAIOutput, validate_report
 
 logger = logging.getLogger(__name__)
@@ -51,15 +51,36 @@ def generate_report(self, report_id: str) -> str:
             max_output_tokens=report.max_output_tokens,
             temperature=float(report.temperature) if report.temperature is not None else None,
         )
-        result = validate_report(generated, evidence)
+        try:
+            result = validate_report(generated, evidence)
+        except InvalidAIOutput as validation_error:
+            if str(validation_error) != "invalid_evidence_reference":
+                raise
+            # One correction attempt only; never silently map or accept invalid IDs.
+            logger.info("AI report %s attempting bounded evidence reference repair", report_id)
+            repair_system, repair_text = make_evidence_repair_prompt(evidence, generated)
+            corrected = generate_json(
+                model=report.model, system=repair_system, prompt=repair_text,
+                thinking_level=report.thinking_level,
+                max_output_tokens=report.max_output_tokens,
+                temperature=float(report.temperature) if report.temperature is not None else None,
+            )
+            result = validate_report(corrected, evidence)
     except GeminiFailure as exc:
         if exc.retryable and self.request.retries < self.max_retries:
             raise self.retry(exc=exc, countdown=10 * (2 ** self.request.retries)) from exc
         _fail(report_id, exc.code)
         return "failed"
-    except InvalidAIOutput:
+    
+    except InvalidAIOutput as exc:
+        logger.warning(
+        "AI report %s failed output validation: %s",
+        report_id,
+        exc,
+    )
         _fail(report_id, "invalid_ai_output")
         return "failed"
+
     except Exception:
         logger.exception("Unexpected AI report error: %s", report_id)
         _fail(report_id, "processing_error")
