@@ -133,3 +133,11 @@ Current code: **v0.1.0 / M0 rebranded foundation candidate**. The original M0 Do
 Open `/register` for local account creation, then `/login` and `/workspaces`. Public deployment must disable self-registration until account verification and abuse prevention are provided. For permissions, endpoints, tests and remaining risks, see `docs/12_M1_1_IDENTITY_PROJECTS.md`.
 
 Feature branch changes should be reviewed through a pull request and merged only after passing GitHub Actions.
+
+### Reproducible product workflow and evaluation
+
+The implemented review flow is: CSV upload → profiling and rule-based findings → consented Gemini analysis → human-reviewed, bounded remediation → derived-dataset validation → authorized CSV/PDF export. The source CSV is immutable. AI proposals are explanatory and never run arbitrary generated code.
+
+Four selectable prompt techniques are available: zero-shot, few-shot, structured reasoning, and role-based; outputs must cite profile evidence IDs. A collapsible comparison on saved reports displays **descriptive** metadata, not prompt accuracy. A read-only operator audit is available with `python manage.py evaluate_ai_reports` inside the API container.
+
+For synthetic acceptance data, tests, a live-demo checklist and deployment limitations, see [product completion](docs/16_PRODUCT_COMPLETION.md), [deployment readiness](docs/17_DEPLOYMENT_READINESS.md), and the [technical PDF](docs/SyntheSift_Technical_Documentation.pdf). Run `python scripts/check_release.py --url http://127.0.0.1:8000` for a read-only health smoke. Green local tests are not proof of production security, cloud availability, or model correctness.

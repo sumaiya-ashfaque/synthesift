@@ -3,6 +3,8 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 
 import { RemediationWorkflowPanel } from '@/app/components/remediation-workflow-panel';
+import { AIReportComparison } from '@/app/components/ai-report-comparison';
+
 import { request } from '@/lib/client-api';
 
 type Evidence = {
@@ -217,6 +219,8 @@ export function AIRemediationPanel({ workspaceId, projectId, datasetId, canRun }
           </select>
         </div>
       )}
+
+      {reports.length > 1 && <AIReportComparison reports={reports} />}
 
       {!current ? (
         <p className="ss-ai-note">No AI analysis has been requested for this dataset.</p>
