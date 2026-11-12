@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Brand } from '@/app/components/brand';
+import { ProductNavigation } from '@/app/components/product-navigation';
 import { request, type Dataset, type Project, type Workspace } from '@/lib/client-api';
 
 type Target = {
@@ -175,10 +176,7 @@ export function ResourceManagement() {
     <div className="ss-app-shell">
       <aside className="ss-sidebar" aria-label="Product navigation">
         <div className="ss-sidebar-brand"><Brand /></div>
-        <nav className="ss-sidebar-content ss-management-nav" aria-label="Navigation">
-          <a href="/workspaces">Workspaces</a>
-          <a href="/manage-data" aria-current="page">Manage data</a>
-        </nav>
+        <div className="ss-sidebar-content"><ProductNavigation current="manage-data" /></div>
         <div className="ss-sidebar-bottom"><span className="ss-sidebar-label">SyntheSift</span><p>Data quality workspace</p></div>
       </aside>
       <div className="ss-main-column">
