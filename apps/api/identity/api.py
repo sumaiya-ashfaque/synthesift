@@ -15,8 +15,9 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
-from .authentication import ApiSessionAuthentication
 from datasets.deletion import delete_workspace
+
+from .authentication import ApiSessionAuthentication
 from .models import WorkspaceMembership
 from .policy import get_workspace, require_role, visible_workspaces
 from .serializers import (
