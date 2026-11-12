@@ -46,7 +46,7 @@ export function DatasetLibrary() {
     return () => { active = false; };
   }, [router]);
   useEffect(() => {
-    if (!workspaceId) { setProjects([]); setProjectId(''); return; }
+    if (!workspaceId) return;
     let active = true;
     request<Project[]>(`/api/v1/workspaces/${workspaceId}/projects`)
       .then((data) => { if (active) { setProjects(data); setProjectId(data[0]?.id ?? ''); } })

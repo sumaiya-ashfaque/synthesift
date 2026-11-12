@@ -17,10 +17,10 @@ from identity.models import WorkspaceMembership
 from identity.policy import require_role, visible_workspaces
 
 from .api import authorized_project
-from .tasks import ingest_dataset
 from .models import Dataset
 from .serializers import DatasetSerializer
 from .storage import save_upload, storage_path
+from .tasks import ingest_dataset
 
 logger = logging.getLogger(__name__)
 
