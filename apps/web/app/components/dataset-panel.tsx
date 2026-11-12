@@ -1,5 +1,6 @@
 
 'use client';
+import { DatasetLibraryPicker } from '@/app/components/dataset-library-picker';
 
 import { DatasetProfilePanel } from '@/app/components/dataset-profile-panel';
 import {
@@ -489,6 +490,7 @@ export function DatasetPanel({
         datasets={page?.results ?? []}
         canProfile={canUpload}
       />
+      {canUpload && <DatasetLibraryPicker workspaceId={workspaceId} projectId={project.id} onImported={refresh} />}
     </section>
   );
 }

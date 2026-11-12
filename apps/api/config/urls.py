@@ -11,6 +11,7 @@ from ai_remediation.remediation_api import (
 )
 from core.views import LiveView, MetadataView, ReadyView
 from datasets.api import DatasetDetailView, DatasetListView
+from datasets.library_api import DatasetLibraryImportView, DatasetLibraryView
 from datasets.profile_api import DatasetProfileView
 from identity.api import (
     CsrfView,
@@ -26,6 +27,8 @@ from identity.api import (
 from projects.api import ProjectDetailView, ProjectListView
 
 urlpatterns = [
+    path("api/v1/dataset-library", DatasetLibraryView.as_view(), name="dataset-library"),
+    path("api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/import", DatasetLibraryImportView.as_view(), name="dataset-library-import"),
     
     path(
         "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets",

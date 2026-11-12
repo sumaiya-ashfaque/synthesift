@@ -44,7 +44,7 @@ def generate_report(self, report_id: str) -> str:
         return "failed"
     try:
         evidence = evidence_from_profile(profile.result)
-        system, prompt = make_prompt(report.technique, evidence)
+        system, prompt = make_prompt(report.technique, evidence, report.user_prompt)
         generated = generate_json(
             model=report.model, system=system, prompt=prompt,
             thinking_level=report.thinking_level,

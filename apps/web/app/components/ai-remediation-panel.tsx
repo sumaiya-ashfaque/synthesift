@@ -78,6 +78,7 @@ export function AIRemediationPanel({ workspaceId, projectId, datasetId, canRun }
   const [maxTokens, setMaxTokens] = useState(3072);
   const [temperature, setTemperature] = useState('0.20');
   const [consent, setConsent] = useState(false);
+  const [userPrompt, setUserPrompt] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -124,10 +125,12 @@ export function AIRemediationPanel({ workspaceId, projectId, datasetId, canRun }
         ...(model === 'gemini-2.5-flash' ? { temperature } : {}),
         max_output_tokens: maxTokens,
         consent_external_processing: true,
+        ...(userPrompt.trim() ? { user_prompt: userPrompt.trim() } : {}),
       });
       setReports((previous) => [report, ...previous].slice(0, 10));
       setChosenId(report.id);
       setConsent(false);
+      setUserPrompt('');
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Analysis could not start.');
     } finally {
@@ -193,9 +196,17 @@ export function AIRemediationPanel({ workspaceId, projectId, datasetId, canRun }
               </select>
             </label>
           </div>
+          <label className="ss-ai-user-prompt" htmlFor="ss-ai-user-prompt">
+            Optional analysis guidance
+            <small>For example: prioritize missingness in billing fields. Evidence and safety rules still apply. Do not include secrets or personal information.</small>
+            <textarea id="ss-ai-user-prompt" value={userPrompt} maxLength={600} rows={3}
+              placeholder="What should the analysis focus on? (optional)"
+              onChange={(event) => setUserPrompt(event.target.value)} />
+            <small>{userPrompt.length}/600 characters</small>
+          </label>
           <label className="ss-ai-consent">
             <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-            <span>I authorize sending this dataset’s aggregate profile, column names, and quality findings to Google Gemini. Original CSV rows are not sent.</span>
+            <span>I authorize sending this dataset’s aggregate profile, column names, and quality findings to Google Gemini. Original CSV rows are not sent. Optional guidance text is also sent to Google Gemini.</span>
           </label>
           <button className="ss-button ss-button-primary" type="submit" disabled={!consent || busy || pending}>
             {busy ? 'Submitting…' : 'Generate recommendations'}

@@ -1,10 +1,11 @@
 import Link from 'next/link';
+import { ThemeToggle } from '@/app/components/theme-toggle';
 
-type Destination = 'overview' | 'workbench' | 'manage-data';
+type Destination = 'overview' | 'library' | 'workbench' | 'manage-data';
 
 type Props = { current: Destination };
 
-type SymbolName = 'overview' | 'workbench' | 'manage';
+type SymbolName = 'overview' | 'library' | 'workbench' | 'manage';
 
 function NavigationIcon({ name }: { name: SymbolName }) {
   const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.8,
@@ -16,6 +17,9 @@ function NavigationIcon({ name }: { name: SymbolName }) {
         <rect x="14" y="3" width="7" height="7" rx="1.5" />
         <rect x="3" y="14" width="7" height="7" rx="1.5" />
         <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      </>}
+      {name === 'library' && <>
+        <path d="M4 5h16v14H4zM8 9h8M8 13h5" />
       </>}
       {name === 'workbench' && <>
         <ellipse cx="12" cy="5.5" rx="8" ry="2.6" />
@@ -33,6 +37,7 @@ const destinations: ReadonlyArray<{
   key: Destination; href: string; label: string; icon: SymbolName; detail: string;
 }> = [
   { key: 'overview', href: '/workspaces', label: 'Overview', icon: 'overview', detail: 'Workspaces and projects' },
+  { key: 'library', href: '/dataset-library', label: 'Dataset library', icon: 'library', detail: 'Upload and find accessible CSV datasets' },
   { key: 'workbench', href: '/workbench', label: 'Data workbench', icon: 'workbench', detail: 'Profiles, findings and history' },
   { key: 'manage-data', href: '/manage-data', label: 'Manage data', icon: 'manage', detail: 'Deletion and governance' },
 ];
@@ -48,6 +53,7 @@ export function ProductNavigation({ current }: Props) {
           <span>{label}</span>
         </Link>
       ))}
+      <ThemeToggle />
       <p className="ss-product-nav-footnote">Evidence first. Every change reviewed.</p>
     </nav>
   );
