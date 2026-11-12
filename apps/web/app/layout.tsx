@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import "./globals.css";
 import "./brand.css";
 import './dashboard.css';
+import './product-experience.css';
 export const metadata: Metadata = {
   title: 'SyntheSift | AI-Powered Data Quality Analysis & Remediation',
   description: 'Data-quality intelligence platform — foundation and service diagnostics',

@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 import { Brand } from '@/app/components/brand';
+import { ProductNavigation } from '@/app/components/product-navigation';
 import { DatasetPanel } from '@/app/components/dataset-panel';
 
 import {
@@ -297,6 +298,7 @@ export function WorkspaceDashboard() {
         </div>
 
         <div className="ss-sidebar-content">
+          <ProductNavigation current="overview" />
           <div className="ss-sidebar-label">
             Workspaces
           </div>
@@ -406,6 +408,7 @@ export function WorkspaceDashboard() {
           </div>
 
           <div className="ss-user-actions">
+            <a className="ss-topbar-shortcut" href="/workbench">Data workbench <span aria-hidden="true">↗</span></a>
             <span
               className="ss-account-label"
               title={
