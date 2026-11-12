@@ -110,6 +110,7 @@ class AIReportListView(APIView):
                 temperature=data.get("temperature"),
                 max_output_tokens=data["max_output_tokens"],
                 profile_digest=profile_digest(profile.result),
+                user_prompt=data.get("user_prompt", ""),
                 consent_at=timezone.now(),
             )
             report_id = str(report.pk)

@@ -361,6 +361,52 @@ paths:
         '204':
           description: Owner deletes project.
 
+  /api/v1/dataset-library:
+    get:
+      tags: [dataset-library]
+      operationId: listDatasetLibrary
+      summary: List recent datasets in authorized workspaces and projects
+      responses:
+        '200':
+          description: Up to 200 recent accessible dataset records
+        '401':
+          description: Authentication required
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/import:
+    post:
+      tags: [dataset-library]
+      operationId: postDatasetLibraryImport
+      summary: Create an independent project-local copy of an authorized ready dataset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [source_dataset_id]
+              properties:
+                source_dataset_id:
+                  type: string
+                  format: uuid
+      responses:
+        '202':
+          description: New copy queued for validation and profiling
+        '401':
+          description: Authentication required
+        '403':
+          description: Workspace editing permission required
+        '404':
+          description: Dataset or target project not accessible
+        '409':
+          description: Source dataset is not ready or unavailable
+    parameters:
+      - name: workspace_id
+        in: path
+        required: true
+        schema: {type: string, format: uuid}
+      - name: project_id
+        in: path
+        required: true
+        schema: {type: string, format: uuid}
   /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets:
     parameters:
       - name: workspace_id

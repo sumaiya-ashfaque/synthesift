@@ -24,6 +24,7 @@ class AIReportCreateSerializer(serializers.Serializer):
     max_output_tokens = serializers.IntegerField(
         min_value=1024, max_value=8192, default=3072
     )
+    user_prompt = serializers.CharField(max_length=600, allow_blank=True, required=False, trim_whitespace=True)
     consent_external_processing = serializers.BooleanField()
 
     def validate(self, attrs):
@@ -52,7 +53,7 @@ class AIReportSerializer(serializers.ModelSerializer):
         model = AIReport
         fields = (
             "id", "dataset", "status", "technique", "model", "thinking_level",
-            "temperature", "max_output_tokens", "profile_digest", "result",
+            "temperature", "max_output_tokens", "profile_digest", "user_prompt", "result",
             "error_code", "created_at", "started_at", "completed_at",
         )
         read_only_fields = fields

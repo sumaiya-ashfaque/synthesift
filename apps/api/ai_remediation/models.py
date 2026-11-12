@@ -36,6 +36,7 @@ class AIReport(models.Model):
     temperature = models.DecimalField(max_digits=3, decimal_places=2, null=True)
     max_output_tokens = models.PositiveIntegerField(default=2048)
     profile_digest = models.CharField(max_length=64)
+    user_prompt = models.CharField(max_length=600, blank=True, default="")
     result = models.JSONField(default=dict)
     error_code = models.CharField(max_length=48, blank=True)
     consent_at = models.DateTimeField()
