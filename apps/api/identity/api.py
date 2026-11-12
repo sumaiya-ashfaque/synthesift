@@ -15,6 +15,8 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
+from datasets.deletion import delete_workspace
+
 from .authentication import ApiSessionAuthentication
 from .models import WorkspaceMembership
 from .policy import get_workspace, require_role, visible_workspaces
@@ -142,7 +144,7 @@ class WorkspaceDetailView(APIView):
     def delete(self, request, workspace_id):
         workspace = get_workspace(request.user, workspace_id)
         require_role(request.user, workspace, {"owner"})
-        workspace.delete()
+        delete_workspace(workspace)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

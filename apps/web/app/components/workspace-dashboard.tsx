@@ -385,6 +385,7 @@ export function WorkspaceDashboard() {
         </div>
 
         <div className="ss-sidebar-bottom">
+          <a className="ss-manage-link" href="/manage-data">Manage data</a>
           <span className="ss-sidebar-label">
             SyntheSift
           </span>
