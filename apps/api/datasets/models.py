@@ -144,3 +144,13 @@ class DatasetProfile(models.Model):
     updated_at = models.DateTimeField(
         auto_now=True,
     )
+
+class StoredFileDeletion(models.Model):
+    """Durable file deletion requested by a committed resource removal."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    storage_key = models.CharField(max_length=120, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]

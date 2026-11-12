@@ -6,7 +6,7 @@ import logging
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.exceptions import APIException
 from rest_framework.pagination import LimitOffsetPagination
@@ -18,6 +18,7 @@ from rest_framework.views import APIView
 from identity.policy import get_workspace, require_role
 from projects.models import Project
 
+from .deletion import delete_dataset
 from .models import Dataset
 from .serializers import DatasetSerializer, DatasetUploadSerializer
 from .storage import save_upload, storage_path
@@ -189,3 +190,11 @@ class DatasetDetailView(APIView):
         return Response(
             DatasetSerializer(dataset).data
         )
+
+    @extend_schema(tags=["datasets"], responses={204: None, 409: OpenApiResponse(description="Deletion blocked by active jobs")})
+    def delete(self, request, workspace_id, project_id, dataset_id):
+        workspace, project = authorized_project(request.user, workspace_id, project_id)
+        require_role(request.user, workspace, {"owner", "editor"})
+        dataset = get_object_or_404(Dataset, pk=dataset_id, project=project)
+        delete_dataset(dataset)
+        return Response(status=status.HTTP_204_NO_CONTENT)

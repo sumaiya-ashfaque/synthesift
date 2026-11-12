@@ -463,6 +463,16 @@ paths:
           description: Authentication required
         '404':
           description: Dataset not found
+    delete:
+      tags: [datasets]
+      operationId: deleteProjectDataset
+      summary: Permanently delete CSV data, derived outputs, reports and remediation history
+      responses:
+        '204': {description: Dataset and dependent resources deleted}
+        '401': {description: Authentication required}
+        '403': {description: Owner or editor required}
+        '404': {description: Dataset not found}
+        '409': {description: In-progress ingestion, profiling or AI job}
 
   /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/profile:
     parameters:

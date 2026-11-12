@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from datasets.deletion import delete_project
 from identity.policy import get_workspace, require_role
 
 from .models import Project
@@ -65,5 +66,5 @@ class ProjectDetailView(APIView):
         workspace = get_workspace(request.user, workspace_id)
         project = get_object_or_404(Project, workspace=workspace, pk=project_id)
         require_role(request.user, workspace, {"owner"})
-        project.delete()
+        delete_project(project)
         return Response(status=status.HTTP_204_NO_CONTENT)
