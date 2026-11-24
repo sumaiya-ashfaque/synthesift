@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "projects",
     "datasets",
     "ai_remediation",
+    "pipelines",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -121,7 +122,11 @@ SPECTACULAR_SETTINGS = {
 CSRF_FAILURE_VIEW = "core.security.csrf_failure"
 CSRF_TRUSTED_ORIGINS = env_csv("DJANGO_CSRF_TRUSTED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
 SELF_REGISTRATION_ENABLED = env_bool("SELF_REGISTRATION_ENABLED", APP_ENV != "production")
-CACHES = {"default": {"BACKEND": "django.core.cache.backends.redis.RedisCache", "LOCATION": os.environ.get("CACHE_REDIS_URL", "redis://redis:6379/2")}}
+_CACHE_URL = os.environ.get("CACHE_REDIS_URL", "redis://redis:6379/2")
+if _CACHE_URL == "locmem://" and APP_ENV != "production":
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+else:
+    CACHES = {"default": {"BACKEND": "django.core.cache.backends.redis.RedisCache", "LOCATION": _CACHE_URL}}
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
@@ -146,6 +151,11 @@ CELERY_TASK_SOFT_TIME_LIMIT = 90
 CELERY_TASK_ACKS_LATE = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_TASK_ALWAYS_EAGER = (
+    env_bool("CELERY_TASK_ALWAYS_EAGER", default=False)
+    if APP_ENV != "production"
+    else False
+)
 
 DATASET_STORAGE_ROOT = Path(
     os.environ.get("DATASET_STORAGE_ROOT", "/data/datasets")
