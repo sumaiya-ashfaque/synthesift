@@ -966,6 +966,38 @@ paths:
       summary: List contract gate runs for a dataset
       responses:
         '200': {description: Contract evaluation runs}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/ai-evals:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [ai-evals]
+      operationId: projectAiEvals
+      summary: Aggregate AI evaluation telemetry across saved reports in a project
+      responses:
+        '200': {description: AI evaluation metrics and breakdown}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/ai-evals/offline-benchmark:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [ai-evals]
+      operationId: runAiGuardrailBenchmark
+      summary: Execute deterministic adversarial and citation-grounding guardrail benchmarks
+      responses:
+        '200': {description: Guardrail benchmark assertions}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/ai-reports/{report_id}/draft-pipeline:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: report_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [ai-evals]
+      operationId: draftPipelineFromAiReport
+      summary: Deterministically synthesize allowlisted DSL pipeline steps from a grounded AI report
+      responses:
+        '200': {description: Validated DSL pipeline draft}
 
 components:
   schemas:
