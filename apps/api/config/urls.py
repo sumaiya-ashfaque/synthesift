@@ -27,6 +27,7 @@ from identity.api import (
     WorkspaceListView,
 )
 from pipelines.api import (
+    DriftCompareView,
     PipelineApproveView,
     PipelineCodeExportView,
     PipelineExportView,
@@ -119,6 +120,10 @@ urlpatterns = [
     path(
         "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/lineage",
         ProjectLineageView.as_view(), name="project-lineage",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/drift/compare",
+        DriftCompareView.as_view(), name="project-drift-compare",
     ),
     path(
         "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/pipelines",

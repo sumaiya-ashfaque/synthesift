@@ -799,6 +799,16 @@ paths:
       summary: Retrieve project dataset version lineage DAG
       responses:
         '200': {description: Lineage nodes and edges}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/drift/compare:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [drift]
+      operationId: compareDatasetDrift
+      summary: Compute schema diff, PSI, KS-test, and JSD drift between two datasets
+      responses:
+        '200': {description: Statistical drift report}
   /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/pipelines:
     parameters:
       - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
