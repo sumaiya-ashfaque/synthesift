@@ -1,8 +1,15 @@
 import { apiErrorMessage } from './error-copy';
 import type {
+  ContractRule,
+  ContractRunRecord,
+  DataContractRecord,
   DatasetRowsResponse,
+  DraftPipelineResponse,
+  DriftComparisonReport,
   DSLStep,
+  GuardrailBenchmarkResponse,
   PipelineRunRecord,
+  ProjectAIEvalsResponse,
   ProjectLineageGraph,
   TransformationRecipeRecord,
   WorkspaceMember,
@@ -422,5 +429,152 @@ export async function fetchProjectLineage(
 ): Promise<ProjectLineageGraph> {
   return request<ProjectLineageGraph>(
     `/api/v1/workspaces/${workspaceId}/projects/${projectId}/lineage`,
+  );
+}
+
+export async function compareDatasetDrift(
+  workspaceId: string,
+  projectId: string,
+  baselineDatasetId: string,
+  candidateDatasetId: string,
+): Promise<DriftComparisonReport> {
+  return request<DriftComparisonReport>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/drift/compare`,
+    'POST',
+    {
+      baseline_dataset_id: baselineDatasetId,
+      candidate_dataset_id: candidateDatasetId,
+    },
+  );
+}
+
+export async function fetchContracts(
+  workspaceId: string,
+  projectId: string,
+): Promise<DataContractRecord[]> {
+  return request<DataContractRecord[]>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/contracts`,
+  );
+}
+
+export async function createContract(
+  workspaceId: string,
+  projectId: string,
+  payload: { name: string; description?: string; rules: ContractRule[] },
+): Promise<DataContractRecord> {
+  return request<DataContractRecord>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/contracts`,
+    'POST',
+    payload,
+  );
+}
+
+export async function updateContract(
+  workspaceId: string,
+  projectId: string,
+  contractId: string,
+  payload: Partial<{ name: string; description: string; rules: ContractRule[] }>,
+): Promise<DataContractRecord> {
+  return request<DataContractRecord>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/contracts/${contractId}`,
+    'PATCH',
+    payload,
+  );
+}
+
+export async function deleteContract(
+  workspaceId: string,
+  projectId: string,
+  contractId: string,
+): Promise<void> {
+  return request<void>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/contracts/${contractId}`,
+    'DELETE',
+  );
+}
+
+export async function exportContractYaml(
+  workspaceId: string,
+  projectId: string,
+  contractId: string,
+): Promise<{ yaml: string }> {
+  return request<{ yaml: string }>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/contracts/${contractId}/yaml`,
+  );
+}
+
+export async function importContractYaml(
+  workspaceId: string,
+  projectId: string,
+  yaml: string,
+): Promise<DataContractRecord> {
+  return request<DataContractRecord>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/contracts/import-yaml`,
+    'POST',
+    { yaml },
+  );
+}
+
+export async function autoGenerateContract(
+  workspaceId: string,
+  projectId: string,
+  datasetId: string,
+): Promise<{ name?: string; rules: ContractRule[]; yaml: string; reason?: string }> {
+  return request<{ name?: string; rules: ContractRule[]; yaml: string; reason?: string }>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/contracts/auto-generate`,
+    'POST',
+  );
+}
+
+export async function evaluateContractGate(
+  workspaceId: string,
+  projectId: string,
+  datasetId: string,
+  contractId: string,
+): Promise<ContractRunRecord> {
+  return request<ContractRunRecord>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/contracts/${contractId}/evaluate`,
+    'POST',
+  );
+}
+
+export async function fetchContractRuns(
+  workspaceId: string,
+  projectId: string,
+  datasetId: string,
+): Promise<ContractRunRecord[]> {
+  return request<ContractRunRecord[]>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/contract-runs`,
+  );
+}
+
+export async function fetchProjectAiEvals(
+  workspaceId: string,
+  projectId: string,
+): Promise<ProjectAIEvalsResponse> {
+  return request<ProjectAIEvalsResponse>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/ai-evals`,
+  );
+}
+
+export async function runAiGuardrailBenchmark(
+  workspaceId: string,
+  projectId: string,
+): Promise<GuardrailBenchmarkResponse> {
+  return request<GuardrailBenchmarkResponse>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/ai-evals/offline-benchmark`,
+    'POST',
+  );
+}
+
+export async function draftPipelineFromAiReport(
+  workspaceId: string,
+  projectId: string,
+  datasetId: string,
+  reportId: string,
+): Promise<DraftPipelineResponse> {
+  return request<DraftPipelineResponse>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/ai-reports/${reportId}/draft-pipeline`,
+    'POST',
   );
 }

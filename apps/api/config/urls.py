@@ -4,10 +4,24 @@ from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from ai_remediation.api import AIReportDetailView, AIReportListView
+from ai_remediation.eval_api import (
+    AIGuardrailBenchmarkView,
+    AIReportDraftPipelineView,
+    ProjectAIEvalSummaryView,
+)
 from ai_remediation.remediation_api import (
     RemediationDetailView,
     RemediationExportView,
     RemediationListView,
+)
+from contracts_engine.api import (
+    ContractEvaluateView,
+    DataContractAutoGenerateView,
+    DataContractDetailView,
+    DataContractListView,
+    DataContractYamlExportView,
+    DataContractYamlImportView,
+    DatasetContractRunsView,
 )
 from core.views import LiveView, MetadataView, ReadyView
 from datasets.api import DatasetDetailView, DatasetListView
@@ -27,6 +41,7 @@ from identity.api import (
     WorkspaceListView,
 )
 from pipelines.api import (
+    DriftCompareView,
     PipelineApproveView,
     PipelineCodeExportView,
     PipelineExportView,
@@ -95,6 +110,22 @@ urlpatterns = [
     ),
     path(
         "api/v1/workspaces/<uuid:workspace_id>/projects/"
+        "<uuid:project_id>/datasets/<uuid:dataset_id>/ai-reports/<uuid:report_id>/draft-pipeline",
+        AIReportDraftPipelineView.as_view(),
+        name="dataset-ai-report-draft-pipeline",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/ai-evals",
+        ProjectAIEvalSummaryView.as_view(),
+        name="project-ai-evals",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/ai-evals/offline-benchmark",
+        AIGuardrailBenchmarkView.as_view(),
+        name="project-ai-evals-offline-benchmark",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/"
         "<uuid:project_id>/datasets/<uuid:dataset_id>/remediations",
         RemediationListView.as_view(), name="dataset-remediations",
     ),
@@ -121,6 +152,10 @@ urlpatterns = [
         ProjectLineageView.as_view(), name="project-lineage",
     ),
     path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/drift/compare",
+        DriftCompareView.as_view(), name="project-drift-compare",
+    ),
+    path(
         "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/pipelines",
         PipelineRunListView.as_view(), name="dataset-pipelines",
     ),
@@ -139,5 +174,33 @@ urlpatterns = [
     path(
         "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/pipelines/<uuid:run_id>/export",
         PipelineExportView.as_view(), name="dataset-pipeline-export",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/contracts",
+        DataContractListView.as_view(), name="project-contracts",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/contracts/import-yaml",
+        DataContractYamlImportView.as_view(), name="project-contracts-import-yaml",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/contracts/<uuid:contract_id>",
+        DataContractDetailView.as_view(), name="project-contract-detail",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/contracts/<uuid:contract_id>/yaml",
+        DataContractYamlExportView.as_view(), name="project-contract-yaml",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/contracts/auto-generate",
+        DataContractAutoGenerateView.as_view(), name="dataset-contract-autogenerate",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/contracts/<uuid:contract_id>/evaluate",
+        ContractEvaluateView.as_view(), name="dataset-contract-evaluate",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/contract-runs",
+        DatasetContractRunsView.as_view(), name="dataset-contract-runs",
     ),
 ]

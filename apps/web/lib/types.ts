@@ -356,3 +356,235 @@ export type ProjectLineageGraph = {
   nodes: LineageNode[];
   edges: LineageEdge[];
 };
+
+export type DriftAlignedBin = {
+  bin_start: number;
+  bin_end: number;
+  baseline_pct: number;
+  candidate_pct: number;
+};
+
+export type DriftColumnReport = {
+  column: string;
+  baseline_type: string;
+  candidate_type: string;
+  kind: 'numeric' | 'categorical';
+  baseline_missing_pct: number;
+  candidate_missing_pct: number;
+  missing_delta_pct: number;
+  status: 'stable' | 'moderate' | 'drifted';
+  numeric: {
+    psi: number | null;
+    ks_stat: number | null;
+    ks_p_value: number | null;
+    baseline_mean: number | null;
+    candidate_mean: number | null;
+    mean_shift_pct: number | null;
+    baseline_p50: number | null;
+    candidate_p50: number | null;
+    aligned_bins: DriftAlignedBin[];
+    status: string;
+  } | null;
+  categorical: {
+    jsd: number;
+    tvd: number;
+    baseline_distinct: number;
+    candidate_distinct: number;
+    unseen_category_pct: number;
+    status: string;
+  } | null;
+};
+
+export type DriftComparisonReport = {
+  baseline: {
+    id: string;
+    filename: string;
+    file_format: string;
+    row_count: number;
+    column_count: number;
+    overall_score: number | null;
+  };
+  candidate: {
+    id: string;
+    filename: string;
+    file_format: string;
+    row_count: number;
+    column_count: number;
+    overall_score: number | null;
+  };
+  summary: {
+    status: 'stable' | 'moderate' | 'drifted';
+    row_count_delta: number;
+    row_count_pct_change: number;
+    score_delta: number | null;
+    drifted_columns: number;
+    moderate_columns: number;
+    stable_columns: number;
+    max_psi: number;
+    max_ks: number;
+    max_jsd: number;
+  };
+  schema_drift: {
+    added_columns: string[];
+    removed_columns: string[];
+    type_changes: Array<{ column: string; baseline_type: string; candidate_type: string }>;
+    common_column_count: number;
+  };
+  columns: DriftColumnReport[];
+};
+
+export type ContractRuleType =
+  | 'expect_column_to_exist'
+  | 'expect_column_not_null'
+  | 'expect_column_unique'
+  | 'expect_column_values_between'
+  | 'expect_column_values_in_set'
+  | 'expect_column_regex_match'
+  | 'expect_column_no_pii'
+  | 'expect_column_no_whitespace_padding'
+  | 'expect_table_row_count_between'
+  | 'expect_column_mean_between';
+
+export type ContractRule = {
+  type: ContractRuleType;
+  severity: 'error' | 'warning';
+  column?: string;
+  max_null_percent?: number;
+  min_value?: number | null;
+  max_value?: number | null;
+  mostly?: number;
+  allowed_values?: string[];
+  case_sensitive?: boolean;
+  pattern?: string;
+  min_rows?: number | null;
+  max_rows?: number | null;
+  min_mean?: number | null;
+  max_mean?: number | null;
+};
+
+export type DataContractRecord = {
+  id: string;
+  project: string;
+  name: string;
+  description: string;
+  version: number;
+  rules: ContractRule[];
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ContractRuleResult = {
+  rule_index: number;
+  type: ContractRuleType;
+  column: string | null;
+  severity: 'error' | 'warning';
+  passed: boolean;
+  observed: string;
+  expected: string;
+  failing_rows: number;
+};
+
+export type ContractRunRecord = {
+  id: string;
+  contract_id: string;
+  contract_name: string;
+  dataset_id: string;
+  triggered_by: string | null;
+  status: 'passed' | 'warning' | 'failed';
+  passed_rules: number;
+  failed_rules: number;
+  total_rules: number;
+  pass_rate: number;
+  results: ContractRuleResult[];
+  created_at: string;
+};
+
+export type AIEvalSummary = {
+  total_reports: number;
+  ready_reports: number;
+  failed_reports: number;
+  schema_compliance_rate: number;
+  citation_grounding_rate: number;
+  total_recommendations: number;
+  safe_abstention_count: number;
+  mean_latency_ms: number | null;
+  p95_latency_ms: number | null;
+  privacy_egress_policy: string;
+};
+
+export type AIEvalTechniqueRow = {
+  technique: string;
+  runs: number;
+  ready: number;
+  failed: number;
+  citation_grounding_rate: number;
+  avg_recommendations: number;
+  mean_latency_ms: number | null;
+};
+
+export type AIEvalModelRow = {
+  model: string;
+  runs: number;
+  ready: number;
+  failed: number;
+  citation_grounding_rate: number;
+  avg_recommendations: number;
+  mean_latency_ms: number | null;
+};
+
+export type AIEvalRecentRun = {
+  id: string;
+  dataset_id: string;
+  dataset_filename: string;
+  technique: string;
+  model: string;
+  status: string;
+  error_code: string;
+  recommendation_count: number;
+  grounded_ratio: number;
+  latency_ms: number | null;
+  created_at: string;
+};
+
+export type ProjectAIEvalsResponse = {
+  summary: AIEvalSummary;
+  by_technique: AIEvalTechniqueRow[];
+  by_model: AIEvalModelRow[];
+  failure_breakdown: Record<string, number>;
+  recent_runs: AIEvalRecentRun[];
+};
+
+export type GuardrailBenchmarkCase = {
+  id: string;
+  category: string;
+  title: string;
+  expected_outcome: 'accept' | 'reject';
+  actual_outcome: 'accept' | 'reject';
+  guardrail_code: string;
+  passed: boolean;
+  detail: string;
+};
+
+export type GuardrailBenchmarkResponse = {
+  suite_version: string;
+  total_cases: number;
+  passed_cases: number;
+  pass_rate: number;
+  duration_ms: number;
+  cases: GuardrailBenchmarkCase[];
+};
+
+export type DraftPipelineResponse = {
+  report_id: string;
+  source_recommendation_count: number;
+  steps: DSLStep[];
+  rationale_map: Array<{
+    step_index: number;
+    op: string;
+    column: string;
+    from_recommendation: string;
+    evidence_ids: string[];
+  }>;
+  safety_notice: string;
+};

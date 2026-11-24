@@ -10,19 +10,25 @@ import {
   CheckCircle2,
   Columns3,
   FileSpreadsheet,
+  FlaskConical,
   GitBranch,
+  GitCompareArrows,
   Lock,
   Network,
   Play,
   RefreshCw,
   Search,
+  ShieldCheck,
   SlidersHorizontal,
   Sparkles,
   Table2,
 } from 'lucide-react';
 import { AIRemediationPanel } from '@/app/components/ai-remediation-panel';
 import { AppShell } from '@/app/components/shell/app-shell';
+import { AIEvalWorkbench } from '@/app/components/studio/ai-eval-workbench';
 import { ColumnInspectorDrawer } from '@/app/components/studio/column-inspector-drawer';
+import { ContractsPanel } from '@/app/components/studio/contracts-panel';
+import { DriftInspector } from '@/app/components/studio/drift-inspector';
 import {
   InteractiveDataGrid,
   type ActiveColumnFilter,
@@ -54,11 +60,23 @@ import {
 import type {
   AIReportRecord,
   DatasetProfileRecord,
+  DSLStep,
   RemediationRunRecord,
 } from '@/lib/types';
 
 type ResultList<T> = T[] | { results: T[] };
-type StudioTab = 'overview' | 'grid' | 'columns' | 'findings' | 'pipeline' | 'lineage' | 'analysis' | 'history';
+type StudioTab =
+  | 'overview'
+  | 'grid'
+  | 'columns'
+  | 'findings'
+  | 'pipeline'
+  | 'drift'
+  | 'contracts'
+  | 'lineage'
+  | 'analysis'
+  | 'evals'
+  | 'history';
 
 const TABS: ReadonlyArray<{ id: StudioTab; label: string; Icon: typeof Activity }> = [
   { id: 'overview', label: 'Overview', Icon: Activity },
@@ -66,8 +84,11 @@ const TABS: ReadonlyArray<{ id: StudioTab; label: string; Icon: typeof Activity 
   { id: 'columns', label: 'Columns', Icon: Columns3 },
   { id: 'findings', label: 'Findings', Icon: AlertTriangle },
   { id: 'pipeline', label: 'Pipeline', Icon: SlidersHorizontal },
+  { id: 'drift', label: 'Drift', Icon: GitCompareArrows },
+  { id: 'contracts', label: 'Contracts', Icon: ShieldCheck },
   { id: 'lineage', label: 'Lineage', Icon: Network },
   { id: 'analysis', label: 'AI & remediation', Icon: Sparkles },
+  { id: 'evals', label: 'AI evals', Icon: FlaskConical },
   { id: 'history', label: 'History', Icon: GitBranch },
 ];
 
@@ -136,6 +157,11 @@ export function DatasetStudio() {
   const [severity, setSeverity] = useState('all');
   const [inspectedColName, setInspectedColName] = useState<string | null>(null);
   const [gridColumnFilter, setGridColumnFilter] = useState<ActiveColumnFilter>(null);
+  const [draftedPipeline, setDraftedPipeline] = useState<{
+    revision: number;
+    steps: DSLStep[];
+    note: string;
+  } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -1219,13 +1245,16 @@ export function DatasetStudio() {
                 {tab === 'pipeline' && (
                   dataset.status === 'ready' ? (
                     <PipelineBuilder
-                      key={`${workspaceId}:${projectId}:${dataset.id}`}
+                      key={`${workspaceId}:${projectId}:${dataset.id}:${draftedPipeline?.revision ?? 0}`}
                       workspaceId={workspaceId}
                       projectId={projectId}
                       datasetId={dataset.id}
                       columns={profile?.columns.map((c) => c.name) ?? dataset.columns ?? []}
                       canEdit={canEdit}
+                      initialSteps={draftedPipeline?.steps}
+                      draftNotice={draftedPipeline?.note}
                       onDatasetDerived={(derivedId) => {
+                        setDraftedPipeline(null);
                         void reloadDatasets(workspaceId, projectId, derivedId).then(() => {
                           setDatasetId(derivedId);
                           setDetails(null);
@@ -1239,6 +1268,29 @@ export function DatasetStudio() {
                       Dataset must reach READY status before building transformation pipelines.
                     </p>
                   )
+                )}
+
+                {/* TAB: ML DRIFT DETECTION */}
+                {tab === 'drift' && (
+                  <DriftInspector
+                    workspaceId={workspaceId}
+                    projectId={projectId}
+                    datasets={datasets}
+                    activeDatasetId={dataset.id}
+                  />
+                )}
+
+                {/* TAB: DECLARATIVE DATA CONTRACTS */}
+                {tab === 'contracts' && (
+                  <ContractsPanel
+                    key={`${workspaceId}:${projectId}:${dataset.id}`}
+                    workspaceId={workspaceId}
+                    projectId={projectId}
+                    datasetId={dataset.id}
+                    columns={profile?.columns.map((c) => c.name) ?? dataset.columns ?? []}
+                    canEdit={canEdit}
+                    datasetReady={dataset.status === 'ready'}
+                  />
                 )}
 
                 {/* TAB 6: INTERACTIVE LINEAGE DAG */}
@@ -1266,6 +1318,15 @@ export function DatasetStudio() {
                       projectId={projectId}
                       datasetId={dataset.id}
                       canRun={canEdit}
+                      onLoadPipelineSteps={(steps, summaryNote) => {
+                        setDraftedPipeline((prev) => ({
+                          revision: (prev?.revision ?? 0) + 1,
+                          steps,
+                          note: summaryNote,
+                        }));
+                        setNotice(summaryNote);
+                        setTab('pipeline');
+                      }}
                     />
                   ) : (
                     <div className="py-10 text-center space-y-2">
@@ -1274,6 +1335,15 @@ export function DatasetStudio() {
                       </p>
                     </div>
                   )
+                )}
+
+                {/* TAB: AI EVAL WORKBENCH */}
+                {tab === 'evals' && (
+                  <AIEvalWorkbench
+                    key={`${workspaceId}:${projectId}`}
+                    workspaceId={workspaceId}
+                    projectId={projectId}
+                  />
                 )}
 
                 {/* TAB 6: LINEAGE & ACTIVITY */}

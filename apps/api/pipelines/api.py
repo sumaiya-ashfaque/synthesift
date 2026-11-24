@@ -28,10 +28,12 @@ from datasets.storage import save_upload, storage_path
 from identity.policy import require_role
 
 from .codegen import generate_duckdb_sql, generate_pandas_code, generate_polars_code
+from .drift import compare_datasets
 from .dsl import PipelineDSLError, suggest_steps_from_profile, validate_steps
 from .executor import execute_pipeline, export_table_bytes
 from .models import PipelineRun, TransformationRecipe
 from .serializers import (
+    DriftCompareRequestSerializer,
     PipelineApproveSerializer,
     PipelineCodeExportSerializer,
     PipelinePreviewRequestSerializer,
@@ -465,3 +467,34 @@ class ProjectLineageView(APIView):
             )
 
         return Response({"nodes": nodes, "edges": edges})
+
+
+class DriftCompareView(APIView):
+    """Compare any two READY datasets in a project for schema & statistical ML drift."""
+
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        tags=["drift"],
+        request=DriftCompareRequestSerializer,
+        responses={200: OpenApiResponse(description="Schema & statistical drift report")},
+    )
+    def post(self, request, workspace_id, project_id):
+        _, project = authorized_project(request.user, workspace_id, project_id)
+        serializer = DriftCompareRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        baseline = get_object_or_404(
+            Dataset, pk=serializer.validated_data["baseline_dataset_id"], project=project
+        )
+        candidate = get_object_or_404(
+            Dataset, pk=serializer.validated_data["candidate_dataset_id"], project=project
+        )
+        if baseline.status != Dataset.Status.READY or candidate.status != Dataset.Status.READY:
+            raise PipelineConflict("Both baseline and candidate datasets must be ready.")
+
+        try:
+            report = compare_datasets(baseline, candidate)
+        except (AdmissionError, OSError, ValueError) as exc:
+            raise ValidationError({"drift": [str(exc)]}) from exc
+        return Response(report, status=status.HTTP_200_OK)

@@ -44,6 +44,11 @@ class PipelineCodeExportSerializer(serializers.Serializer):
     language = serializers.ChoiceField(choices=("polars", "pandas", "sql"), default="polars")
 
 
+class DriftCompareRequestSerializer(serializers.Serializer):
+    baseline_dataset_id = serializers.UUIDField()
+    candidate_dataset_id = serializers.UUIDField()
+
+
 class PipelineRunSerializer(serializers.ModelSerializer):
     created_by = serializers.CharField(source="created_by.username", read_only=True, default=None)
     source_dataset_id = serializers.UUIDField(source="source_dataset.id", read_only=True)

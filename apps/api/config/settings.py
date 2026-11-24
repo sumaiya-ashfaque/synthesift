@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     "datasets",
     "ai_remediation",
     "pipelines",
+    "contracts_engine",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
