@@ -9,6 +9,15 @@ from ai_remediation.remediation_api import (
     RemediationExportView,
     RemediationListView,
 )
+from contracts_engine.api import (
+    ContractEvaluateView,
+    DataContractAutoGenerateView,
+    DataContractDetailView,
+    DataContractListView,
+    DataContractYamlExportView,
+    DataContractYamlImportView,
+    DatasetContractRunsView,
+)
 from core.views import LiveView, MetadataView, ReadyView
 from datasets.api import DatasetDetailView, DatasetListView
 from datasets.demo_api import DatasetDemoSeedView
@@ -144,5 +153,33 @@ urlpatterns = [
     path(
         "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/pipelines/<uuid:run_id>/export",
         PipelineExportView.as_view(), name="dataset-pipeline-export",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/contracts",
+        DataContractListView.as_view(), name="project-contracts",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/contracts/import-yaml",
+        DataContractYamlImportView.as_view(), name="project-contracts-import-yaml",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/contracts/<uuid:contract_id>",
+        DataContractDetailView.as_view(), name="project-contract-detail",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/contracts/<uuid:contract_id>/yaml",
+        DataContractYamlExportView.as_view(), name="project-contract-yaml",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/contracts/auto-generate",
+        DataContractAutoGenerateView.as_view(), name="dataset-contract-autogenerate",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/contracts/<uuid:contract_id>/evaluate",
+        ContractEvaluateView.as_view(), name="dataset-contract-evaluate",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/contract-runs",
+        DatasetContractRunsView.as_view(), name="dataset-contract-runs",
     ),
 ]
