@@ -1,9 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-
 import { AIRemediationPanel } from '@/app/components/ai-remediation-panel';
-
 import { request, type Dataset } from '@/lib/client-api';
 
 type ColumnProfile = {
@@ -102,17 +100,15 @@ export function DatasetProfilePanel({
   useEffect(() => {
     if (!admitted) return;
     let active = true;
-
     void fetchProfile(endpoint)
       .then((value) => {
         if (active) setSnapshot({ key: snapshotKey, value });
       })
       .catch((cause: unknown) => {
-        if (active) setError(
-          cause instanceof Error ? cause.message : 'Unable to load the profile.',
-        );
+        if (active) {
+          setError(cause instanceof Error ? cause.message : 'Unable to load the profile.');
+        }
       });
-
     return () => {
       active = false;
     };
@@ -123,7 +119,6 @@ export function DatasetProfilePanel({
   useEffect(() => {
     if (!pending) return;
     let active = true;
-
     const timer = window.setInterval(() => {
       void fetchProfile(endpoint)
         .then((value) => {
@@ -133,7 +128,6 @@ export function DatasetProfilePanel({
           if (active) setError('Profile status could not refresh.');
         });
     }, 5000);
-
     return () => {
       active = false;
       window.clearInterval(timer);
@@ -148,11 +142,7 @@ export function DatasetProfilePanel({
       const value = await request<DatasetProfile>(endpoint, 'POST');
       setSnapshot({ key: snapshotKey, value });
     } catch (cause) {
-      setError(
-        cause instanceof Error
-          ? cause.message
-          : 'Unable to start profiling. Please retry.',
-      );
+      setError(cause instanceof Error ? cause.message : 'Unable to start profiling. Please retry.');
     } finally {
       setBusy(false);
     }
@@ -178,32 +168,44 @@ export function DatasetProfilePanel({
     counts[column.inferred_type] = (counts[column.inferred_type] ?? 0) + 1;
     return counts;
   }, {});
-  const missing = result?.columns
-    .filter((column) => column.missing_count > 0)
-    .sort((a, b) => b.missing_percent - a.missing_percent) ?? [];
+  const missing =
+    result?.columns
+      .filter((column) => column.missing_count > 0)
+      .sort((a, b) => b.missing_percent - a.missing_percent) ?? [];
 
   return (
-    <section className="ss-profile-panel" aria-labelledby="ss-profile-title">
-      <header className="ss-profile-heading">
+    <section
+      className="rounded-lg border border-[var(--ss-border)] bg-[var(--ss-surface)] p-5 space-y-4"
+      aria-labelledby="ss-profile-title"
+    >
+      <header className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="ss-kicker">Data quality</p>
-          <h3 id="ss-profile-title">Dataset profile</h3>
-          <p>Measure completeness, column structure, repeated rows and quality signals.</p>
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--ss-primary)]">
+            Data quality
+          </p>
+          <h3 id="ss-profile-title" className="text-base font-semibold text-[var(--ss-text)]">
+            Dataset profile
+          </h3>
+          <p className="text-xs text-[var(--ss-muted)]">
+            Measure completeness, column structure, repeated rows and quality signals.
+          </p>
         </div>
         {admitted && (
           <button
             type="button"
-            className="ss-button ss-button-outline"
             disabled={busy}
             onClick={() => void refreshProfile()}
+            className="h-8 rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-3 text-xs font-medium"
           >
             Refresh
           </button>
         )}
       </header>
 
-      <div className="ss-profile-selection">
-        <label htmlFor="ss-profile-dataset">Dataset</label>
+      <div className="space-y-1">
+        <label htmlFor="ss-profile-dataset" className="block text-xs text-[var(--ss-muted)]">
+          Dataset
+        </label>
         <select
           id="ss-profile-dataset"
           value={selectedId}
@@ -212,6 +214,7 @@ export function DatasetProfilePanel({
             setChosenId(event.target.value);
             setError('');
           }}
+          className="h-9 w-full max-w-md rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-2.5 text-xs"
         >
           {datasets.length === 0 && <option value="">No datasets</option>}
           {datasets.map((item) => (
@@ -222,112 +225,125 @@ export function DatasetProfilePanel({
         </select>
       </div>
 
-      {error && <p role="alert" className="ss-error-banner">{error}</p>}
+      {error && (
+        <p role="alert" className="rounded-md border border-[var(--ss-danger)]/35 bg-[var(--ss-danger-wash)] px-3 py-2 text-xs text-[var(--ss-danger)]">
+          {error}
+        </p>
+      )}
 
       {!selected ? (
-        <p className="ss-profile-empty">Upload a CSV file to start profiling.</p>
+        <p className="text-xs text-[var(--ss-muted)]">Upload a dataset file to start profiling.</p>
       ) : !admitted ? (
-        <p className="ss-profile-empty">
+        <p className="text-xs text-[var(--ss-muted)]">
           Admission is {selected.status}. Profiling is available when this dataset is ready.
         </p>
       ) : current === undefined ? (
-        <div className="ss-profile-empty" role="status">
+        <div className="text-xs text-[var(--ss-muted)]" role="status">
           {error ? (
             <button
               type="button"
-              className="ss-button ss-button-outline"
               disabled={busy}
               onClick={() => void refreshProfile()}
+              className="h-8 rounded-md border border-[var(--ss-border)] px-3 text-xs"
             >
               Retry loading
             </button>
-          ) : 'Loading saved profile...'}
+          ) : (
+            'Loading saved profile...'
+          )}
         </div>
       ) : current === null ? (
-        <div className="ss-profile-empty">
-          <p>No profile has been generated for this dataset.</p>
+        <div className="space-y-2.5">
+          <p className="text-xs text-[var(--ss-muted)]">No profile has been generated for this dataset.</p>
           {canProfile && (
             <button
               type="button"
-              className="ss-button ss-button-primary"
               onClick={() => void startProfile()}
               disabled={busy}
+              className="h-9 rounded-md bg-[var(--ss-primary)] px-4 text-xs font-semibold text-white"
             >
               {busy ? 'Starting...' : 'Analyze dataset'}
             </button>
           )}
         </div>
       ) : current.status === 'failed' ? (
-        <div className="ss-profile-empty">
-          <p role="status">Profiling failed: {current.error_code || 'processing_error'}.</p>
+        <div className="space-y-2.5">
+          <p role="status" className="text-xs text-[var(--ss-danger)]">
+            Profiling failed: {current.error_code || 'processing_error'}.
+          </p>
           {canProfile && (
             <button
               type="button"
-              className="ss-button ss-button-primary"
               disabled={busy}
               onClick={() => void startProfile()}
+              className="h-9 rounded-md bg-[var(--ss-primary)] px-4 text-xs font-semibold text-white"
             >
               Retry profiling
             </button>
           )}
         </div>
       ) : pending ? (
-        <p role="status" className="ss-profile-empty">
-          {current.status === 'queued' ? 'Profiling queued' : 'Profiling in progress'}.
-          Status updates automatically.
+        <p role="status" className="font-mono text-xs text-[var(--ss-primary)]">
+          {current.status === 'queued' ? 'Profiling queued' : 'Profiling in progress'}. Status updates automatically.
         </p>
       ) : result ? (
-        <div className="ss-profile-results">
-          <div className="ss-profile-metrics" aria-label="Profile summary">
-            <div><span>Rows</span><strong>{shortNumber(result.row_count)}</strong></div>
-            <div><span>Columns</span><strong>{shortNumber(result.column_count)}</strong></div>
-            <div><span>Missing cells</span><strong>{shortNumber(result.missing_cells)}</strong></div>
-            <div>
-              <span>Completeness</span>
-              <strong>{quality?.completeness_percent ??
-                (result.row_count * result.column_count
-                  ? Math.round(10000 * (1 - result.missing_cells /
-                    (result.row_count * result.column_count))) / 100
-                  : 0)}%</strong>
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5" aria-label="Profile summary">
+            <div className="rounded border border-[var(--ss-border)] bg-[var(--ss-canvas)] p-3">
+              <span className="block font-mono text-[10px] text-[var(--ss-subtle)]">Rows</span>
+              <strong className="font-mono text-base tabular-nums">{shortNumber(result.row_count)}</strong>
             </div>
-            <div><span>Repeated rows</span><strong>{shortNumber(result.duplicate_rows ?? 0)}</strong></div>
+            <div className="rounded border border-[var(--ss-border)] bg-[var(--ss-canvas)] p-3">
+              <span className="block font-mono text-[10px] text-[var(--ss-subtle)]">Columns</span>
+              <strong className="font-mono text-base tabular-nums">{shortNumber(result.column_count)}</strong>
+            </div>
+            <div className="rounded border border-[var(--ss-border)] bg-[var(--ss-canvas)] p-3">
+              <span className="block font-mono text-[10px] text-[var(--ss-subtle)]">Missing cells</span>
+              <strong className="font-mono text-base tabular-nums">{shortNumber(result.missing_cells)}</strong>
+            </div>
+            <div className="rounded border border-[var(--ss-border)] bg-[var(--ss-canvas)] p-3">
+              <span className="block font-mono text-[10px] text-[var(--ss-subtle)]">Completeness</span>
+              <strong className="font-mono text-base tabular-nums">
+                {quality?.completeness_percent ??
+                  (result.row_count * result.column_count
+                    ? Math.round(
+                        10000 * (1 - result.missing_cells / (result.row_count * result.column_count)),
+                      ) / 100
+                    : 0)}
+                %
+              </strong>
+            </div>
+            <div className="rounded border border-[var(--ss-border)] bg-[var(--ss-canvas)] p-3">
+              <span className="block font-mono text-[10px] text-[var(--ss-subtle)]">Repeated rows</span>
+              <strong className="font-mono text-base tabular-nums">
+                {shortNumber(result.duplicate_rows ?? 0)}
+              </strong>
+            </div>
           </div>
 
-          <div className="ss-profile-visuals">
-            <section className="ss-profile-visual" aria-labelledby="ss-missing-title">
-              <h4 id="ss-missing-title">Missing values by column</h4>
-              <p>Percent of dataset rows · showing up to 8 columns with missing values</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <section className="rounded border border-[var(--ss-border)] bg-[var(--ss-canvas)] p-4 space-y-2" aria-labelledby="ss-missing-title">
+              <h4 id="ss-missing-title" className="text-xs font-semibold">Missing values by column</h4>
               {missing.length === 0 ? (
-                <p className="ss-profile-empty-small">No missing cells detected.</p>
+                <p className="text-xs text-[var(--ss-muted)]">No missing cells detected.</p>
               ) : (
-                <ul className="ss-profile-bars">
+                <ul className="space-y-1.5 text-xs">
                   {missing.slice(0, 8).map((column) => (
-                    <li key={column.name}>
-                      <span title={column.name}>{column.name}</span>
-                      <div className="ss-profile-bar-track" aria-hidden="true">
-                        <span style={{ width: `${Math.min(100, column.missing_percent)}%` }} />
-                      </div>
+                    <li key={column.name} className="flex items-center justify-between gap-2 font-mono">
+                      <span className="truncate">{column.name}</span>
                       <strong>{column.missing_percent}%</strong>
                     </li>
                   ))}
                 </ul>
               )}
-              {missing.length > 8 && (
-                <small>{missing.length - 8} more columns appear in the table below.</small>
-              )}
             </section>
 
-            <section className="ss-profile-visual" aria-labelledby="ss-types-title">
-              <h4 id="ss-types-title">Inferred column types</h4>
-              <p>Count of columns by inferred type</p>
-              <ul className="ss-profile-types">
+            <section className="rounded border border-[var(--ss-border)] bg-[var(--ss-canvas)] p-4 space-y-2" aria-labelledby="ss-types-title">
+              <h4 id="ss-types-title" className="text-xs font-semibold">Inferred column types</h4>
+              <ul className="space-y-1.5 text-xs font-mono">
                 {Object.entries(distribution ?? {}).map(([type, count]) => (
-                  <li key={type}>
+                  <li key={type} className="flex items-center justify-between">
                     <span>{type}</span>
-                    <div className="ss-profile-bar-track" aria-hidden="true">
-                      <span style={{ width: `${result.column_count
-                        ? (100 * count) / result.column_count : 0}%` }} />
-                    </div>
                     <strong>{count}</strong>
                   </li>
                 ))}
@@ -335,57 +351,51 @@ export function DatasetProfilePanel({
             </section>
           </div>
 
-          <section aria-labelledby="ss-findings-title" className="ss-profile-findings">
-            <div className="ss-profile-subhead">
-              <h4 id="ss-findings-title">Quality findings</h4>
-              {quality && <span>{quality.findings.length} finding(s)</span>}
-            </div>
-            {!quality ? (
-              <p className="ss-profile-empty-small">This saved profile predates quality checks.</p>
-            ) : quality.findings.length === 0 ? (
-              <p className="ss-profile-empty-small">
-                No issues found by the current deterministic checks.
-              </p>
-            ) : (
-              <ul className="ss-profile-finding-list">
+          <section aria-labelledby="ss-findings-title" className="space-y-2">
+            <h4 id="ss-findings-title" className="text-xs font-semibold">Quality findings</h4>
+            {quality?.findings.length ? (
+              <ul className="divide-y divide-[var(--ss-border)] rounded border border-[var(--ss-border)]">
                 {quality.findings.map((finding, index) => (
-                  <li key={`${finding.code}:${finding.column ?? ''}:${index}`}>
-                    <span className={`ss-profile-severity is-${finding.severity}`}>
-                      {finding.severity}
-                    </span>
-                    <div>
-                      <strong>{finding.column ?? 'Dataset'}</strong>
-                      <p>{finding.message}</p>
-                    </div>
+                  <li key={`${finding.code}:${finding.column ?? ''}:${index}`} className="p-3 text-xs">
+                    <strong className="font-mono">{finding.column ?? 'Dataset'}</strong>
+                    <p className="text-[var(--ss-muted)] mt-0.5">{finding.message}</p>
                   </li>
                 ))}
               </ul>
+            ) : (
+              <p className="text-xs text-[var(--ss-muted)]">
+                No issues found by the current deterministic checks.
+              </p>
             )}
-            <small>Findings are rule-based signals, not a guarantee of semantic correctness.</small>
           </section>
 
-          <section className="ss-profile-columns" aria-labelledby="ss-columns-title">
-            <h4 id="ss-columns-title">Column statistics</h4>
-            <div className="ss-profile-table-scroll">
-              <table>
-                <thead>
+          <section aria-labelledby="ss-columns-title" className="space-y-2">
+            <h4 id="ss-columns-title" className="text-xs font-semibold">Column statistics</h4>
+            <div className="overflow-x-auto rounded border border-[var(--ss-border)]">
+              <table className="w-full border-collapse text-left text-xs">
+                <thead className="border-b border-[var(--ss-border)] bg-[var(--ss-surface-subtle)] font-mono text-[10px]">
                   <tr>
-                    <th scope="col">Column</th><th scope="col">Type</th>
-                    <th scope="col">Missing</th><th scope="col">Distinct</th>
-                    <th scope="col">Numeric range / mean</th>
+                    <th scope="col" className="px-3 py-2">Column</th>
+                    <th scope="col" className="px-3 py-2">Type</th>
+                    <th scope="col" className="px-3 py-2">Missing</th>
+                    <th scope="col" className="px-3 py-2">Distinct</th>
+                    <th scope="col" className="px-3 py-2">Numeric range / mean</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-[var(--ss-border)] font-mono">
                   {result.columns.map((column) => (
                     <tr key={column.name}>
-                      <td><strong>{column.name}</strong></td>
-                      <td>{column.inferred_type}</td>
-                      <td>{column.missing_count} ({column.missing_percent}%)</td>
-                      <td>{column.distinct_count_exact
-                        ? column.distinct_count : 'Above tracking limit'}</td>
-                      <td>{column.numeric
-                        ? `${column.numeric.min} – ${column.numeric.max}; mean ${column.numeric.mean}`
-                        : '—'}</td>
+                      <td className="px-3 py-2"><strong>{column.name}</strong></td>
+                      <td className="px-3 py-2">{column.inferred_type}</td>
+                      <td className="px-3 py-2">{column.missing_count} ({column.missing_percent}%)</td>
+                      <td className="px-3 py-2">
+                        {column.distinct_count_exact ? column.distinct_count : 'Above tracking limit'}
+                      </td>
+                      <td className="px-3 py-2">
+                        {column.numeric
+                          ? `${column.numeric.min} – ${column.numeric.max}; mean ${column.numeric.mean}`
+                          : '—'}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -394,8 +404,9 @@ export function DatasetProfilePanel({
           </section>
         </div>
       ) : (
-        <p className="ss-profile-empty">No profiling result is available.</p>
+        <p className="text-xs text-[var(--ss-muted)]">No profiling result is available.</p>
       )}
+
       {result && selected && (
         <AIRemediationPanel
           key={`${workspaceId}:${projectId}:${selected.id}`}
