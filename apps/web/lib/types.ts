@@ -432,3 +432,70 @@ export type DriftComparisonReport = {
   };
   columns: DriftColumnReport[];
 };
+
+export type ContractRuleType =
+  | 'expect_column_to_exist'
+  | 'expect_column_not_null'
+  | 'expect_column_unique'
+  | 'expect_column_values_between'
+  | 'expect_column_values_in_set'
+  | 'expect_column_regex_match'
+  | 'expect_column_no_pii'
+  | 'expect_column_no_whitespace_padding'
+  | 'expect_table_row_count_between'
+  | 'expect_column_mean_between';
+
+export type ContractRule = {
+  type: ContractRuleType;
+  severity: 'error' | 'warning';
+  column?: string;
+  max_null_percent?: number;
+  min_value?: number | null;
+  max_value?: number | null;
+  mostly?: number;
+  allowed_values?: string[];
+  case_sensitive?: boolean;
+  pattern?: string;
+  min_rows?: number | null;
+  max_rows?: number | null;
+  min_mean?: number | null;
+  max_mean?: number | null;
+};
+
+export type DataContractRecord = {
+  id: string;
+  project: string;
+  name: string;
+  description: string;
+  version: number;
+  rules: ContractRule[];
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ContractRuleResult = {
+  rule_index: number;
+  type: ContractRuleType;
+  column: string | null;
+  severity: 'error' | 'warning';
+  passed: boolean;
+  observed: string;
+  expected: string;
+  failing_rows: number;
+};
+
+export type ContractRunRecord = {
+  id: string;
+  contract_id: string;
+  contract_name: string;
+  dataset_id: string;
+  triggered_by: string | null;
+  status: 'passed' | 'warning' | 'failed';
+  passed_rules: number;
+  failed_rules: number;
+  total_rules: number;
+  pass_rate: number;
+  results: ContractRuleResult[];
+  created_at: string;
+};

@@ -17,6 +17,7 @@ import {
   Play,
   RefreshCw,
   Search,
+  ShieldCheck,
   SlidersHorizontal,
   Sparkles,
   Table2,
@@ -24,6 +25,7 @@ import {
 import { AIRemediationPanel } from '@/app/components/ai-remediation-panel';
 import { AppShell } from '@/app/components/shell/app-shell';
 import { ColumnInspectorDrawer } from '@/app/components/studio/column-inspector-drawer';
+import { ContractsPanel } from '@/app/components/studio/contracts-panel';
 import { DriftInspector } from '@/app/components/studio/drift-inspector';
 import {
   InteractiveDataGrid,
@@ -60,7 +62,17 @@ import type {
 } from '@/lib/types';
 
 type ResultList<T> = T[] | { results: T[] };
-type StudioTab = 'overview' | 'grid' | 'columns' | 'findings' | 'pipeline' | 'drift' | 'lineage' | 'analysis' | 'history';
+type StudioTab =
+  | 'overview'
+  | 'grid'
+  | 'columns'
+  | 'findings'
+  | 'pipeline'
+  | 'drift'
+  | 'contracts'
+  | 'lineage'
+  | 'analysis'
+  | 'history';
 
 const TABS: ReadonlyArray<{ id: StudioTab; label: string; Icon: typeof Activity }> = [
   { id: 'overview', label: 'Overview', Icon: Activity },
@@ -69,6 +81,7 @@ const TABS: ReadonlyArray<{ id: StudioTab; label: string; Icon: typeof Activity 
   { id: 'findings', label: 'Findings', Icon: AlertTriangle },
   { id: 'pipeline', label: 'Pipeline', Icon: SlidersHorizontal },
   { id: 'drift', label: 'Drift', Icon: GitCompareArrows },
+  { id: 'contracts', label: 'Contracts', Icon: ShieldCheck },
   { id: 'lineage', label: 'Lineage', Icon: Network },
   { id: 'analysis', label: 'AI & remediation', Icon: Sparkles },
   { id: 'history', label: 'History', Icon: GitBranch },
@@ -1251,6 +1264,19 @@ export function DatasetStudio() {
                     projectId={projectId}
                     datasets={datasets}
                     activeDatasetId={dataset.id}
+                  />
+                )}
+
+                {/* TAB: DECLARATIVE DATA CONTRACTS */}
+                {tab === 'contracts' && (
+                  <ContractsPanel
+                    key={`${workspaceId}:${projectId}:${dataset.id}`}
+                    workspaceId={workspaceId}
+                    projectId={projectId}
+                    datasetId={dataset.id}
+                    columns={profile?.columns.map((c) => c.name) ?? dataset.columns ?? []}
+                    canEdit={canEdit}
+                    datasetReady={dataset.status === 'ready'}
                   />
                 )}
 
