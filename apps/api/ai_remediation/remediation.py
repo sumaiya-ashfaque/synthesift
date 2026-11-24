@@ -7,7 +7,8 @@ from dataclasses import dataclass
 
 from django.conf import settings
 
-from datasets.ingestion import inspect_csv
+from datasets.formats import iter_tabular_rows
+from datasets.ingestion import AdmissionError, inspect_csv
 from datasets.storage import storage_path
 
 ALLOWED_OPERATIONS = ("trim_whitespace", "remove_exact_duplicates")
@@ -72,10 +73,9 @@ def transform_dataset(dataset, operations: list[str]) -> TransformOutput:
         raise RemediationError("source_changed")
 
     try:
-        reader = csv.reader(io.StringIO(original.decode("utf-8-sig"), newline=""), strict=True)
-        header = next(reader)
-        rows = list(reader)
-    except (csv.Error, UnicodeError, StopIteration) as exc:
+        header, row_iter = iter_tabular_rows(dataset)
+        rows = list(row_iter)
+    except (AdmissionError, csv.Error, UnicodeError, StopIteration) as exc:
         raise RemediationError("source_invalid") from exc
     if len(header) != len(validated.columns) or len(rows) != validated.row_count:
         raise RemediationError("source_changed")

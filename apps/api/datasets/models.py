@@ -16,6 +16,14 @@ class Dataset(models.Model):
         READY = "ready", "Ready"
         FAILED = "failed", "Failed"
 
+    class FileFormat(models.TextChoices):
+        CSV = "csv", "CSV"
+        TSV = "tsv", "TSV"
+        PARQUET = "parquet", "Parquet"
+        XLSX = "xlsx", "Excel"
+        JSON = "json", "JSON"
+        NDJSON = "ndjson", "NDJSON"
+
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -36,6 +44,12 @@ class Dataset(models.Model):
     )
 
     filename = models.CharField(max_length=255)
+
+    file_format = models.CharField(
+        max_length=12,
+        choices=FileFormat.choices,
+        default=FileFormat.CSV,
+    )
 
     storage_key = models.CharField(
         max_length=120,
