@@ -11,8 +11,10 @@ from ai_remediation.remediation_api import (
 )
 from core.views import LiveView, MetadataView, ReadyView
 from datasets.api import DatasetDetailView, DatasetListView
+from datasets.demo_api import DatasetDemoSeedView
 from datasets.library_api import DatasetLibraryImportView, DatasetLibraryView
 from datasets.profile_api import DatasetProfileView
+from datasets.rows_api import DatasetRowsView
 from identity.api import (
     CsrfView,
     LoginView,
@@ -24,11 +26,22 @@ from identity.api import (
     WorkspaceDetailView,
     WorkspaceListView,
 )
+from pipelines.api import (
+    PipelineApproveView,
+    PipelineCodeExportView,
+    PipelineExportView,
+    PipelineRunListView,
+    PipelineSuggestView,
+    ProjectLineageView,
+    RecipeDetailView,
+    RecipeListView,
+)
 from projects.api import ProjectDetailView, ProjectListView
 
 urlpatterns = [
     path("api/v1/dataset-library", DatasetLibraryView.as_view(), name="dataset-library"),
     path("api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/import", DatasetLibraryImportView.as_view(), name="dataset-library-import"),
+    path("api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/seed-demo", DatasetDemoSeedView.as_view(), name="dataset-seed-demo"),
     
     path(
         "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets",
@@ -39,6 +52,11 @@ urlpatterns = [
         "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>",
         DatasetDetailView.as_view(),
         name="project-dataset-detail",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/rows",
+        DatasetRowsView.as_view(),
+        name="project-dataset-rows",
     ),
 
     path("api/v1/auth/csrf", CsrfView.as_view(), name="auth-csrf"),
@@ -89,5 +107,37 @@ urlpatterns = [
         "api/v1/workspaces/<uuid:workspace_id>/projects/"
         "<uuid:project_id>/datasets/<uuid:dataset_id>/remediations/<uuid:run_id>/export",
         RemediationExportView.as_view(), name="dataset-remediation-export",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/recipes",
+        RecipeListView.as_view(), name="project-recipes",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/recipes/<uuid:recipe_id>",
+        RecipeDetailView.as_view(), name="project-recipe-detail",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/lineage",
+        ProjectLineageView.as_view(), name="project-lineage",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/pipelines",
+        PipelineRunListView.as_view(), name="dataset-pipelines",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/pipelines/suggest",
+        PipelineSuggestView.as_view(), name="dataset-pipeline-suggest",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/pipelines/export-code",
+        PipelineCodeExportView.as_view(), name="dataset-pipeline-export-code",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/pipelines/<uuid:run_id>/approve",
+        PipelineApproveView.as_view(), name="dataset-pipeline-approve",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/pipelines/<uuid:run_id>/export",
+        PipelineExportView.as_view(), name="dataset-pipeline-export",
     ),
 ]

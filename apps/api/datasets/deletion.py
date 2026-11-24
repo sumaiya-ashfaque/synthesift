@@ -25,11 +25,16 @@ class DeletionConflict(APIException):
 def _dataset_closure(seed_ids: set) -> set:
     """Include derived outputs of source datasets, recursively."""
     from ai_remediation.models import RemediationRun
+    from pipelines.models import PipelineRun
 
     ids = set(seed_ids)
     while ids:
         descendants = set(
             RemediationRun.objects.filter(dataset_id__in=ids)
+            .exclude(result_dataset_id__isnull=True)
+            .values_list("result_dataset_id", flat=True)
+        ) | set(
+            PipelineRun.objects.filter(source_dataset_id__in=ids)
             .exclude(result_dataset_id__isnull=True)
             .values_list("result_dataset_id", flat=True)
         )
