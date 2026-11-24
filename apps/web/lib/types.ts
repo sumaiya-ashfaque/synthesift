@@ -356,3 +356,79 @@ export type ProjectLineageGraph = {
   nodes: LineageNode[];
   edges: LineageEdge[];
 };
+
+export type DriftAlignedBin = {
+  bin_start: number;
+  bin_end: number;
+  baseline_pct: number;
+  candidate_pct: number;
+};
+
+export type DriftColumnReport = {
+  column: string;
+  baseline_type: string;
+  candidate_type: string;
+  kind: 'numeric' | 'categorical';
+  baseline_missing_pct: number;
+  candidate_missing_pct: number;
+  missing_delta_pct: number;
+  status: 'stable' | 'moderate' | 'drifted';
+  numeric: {
+    psi: number | null;
+    ks_stat: number | null;
+    ks_p_value: number | null;
+    baseline_mean: number | null;
+    candidate_mean: number | null;
+    mean_shift_pct: number | null;
+    baseline_p50: number | null;
+    candidate_p50: number | null;
+    aligned_bins: DriftAlignedBin[];
+    status: string;
+  } | null;
+  categorical: {
+    jsd: number;
+    tvd: number;
+    baseline_distinct: number;
+    candidate_distinct: number;
+    unseen_category_pct: number;
+    status: string;
+  } | null;
+};
+
+export type DriftComparisonReport = {
+  baseline: {
+    id: string;
+    filename: string;
+    file_format: string;
+    row_count: number;
+    column_count: number;
+    overall_score: number | null;
+  };
+  candidate: {
+    id: string;
+    filename: string;
+    file_format: string;
+    row_count: number;
+    column_count: number;
+    overall_score: number | null;
+  };
+  summary: {
+    status: 'stable' | 'moderate' | 'drifted';
+    row_count_delta: number;
+    row_count_pct_change: number;
+    score_delta: number | null;
+    drifted_columns: number;
+    moderate_columns: number;
+    stable_columns: number;
+    max_psi: number;
+    max_ks: number;
+    max_jsd: number;
+  };
+  schema_drift: {
+    added_columns: string[];
+    removed_columns: string[];
+    type_changes: Array<{ column: string; baseline_type: string; candidate_type: string }>;
+    common_column_count: number;
+  };
+  columns: DriftColumnReport[];
+};

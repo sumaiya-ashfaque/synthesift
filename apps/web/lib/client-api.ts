@@ -1,6 +1,7 @@
 import { apiErrorMessage } from './error-copy';
 import type {
   DatasetRowsResponse,
+  DriftComparisonReport,
   DSLStep,
   PipelineRunRecord,
   ProjectLineageGraph,
@@ -422,5 +423,21 @@ export async function fetchProjectLineage(
 ): Promise<ProjectLineageGraph> {
   return request<ProjectLineageGraph>(
     `/api/v1/workspaces/${workspaceId}/projects/${projectId}/lineage`,
+  );
+}
+
+export async function compareDatasetDrift(
+  workspaceId: string,
+  projectId: string,
+  baselineDatasetId: string,
+  candidateDatasetId: string,
+): Promise<DriftComparisonReport> {
+  return request<DriftComparisonReport>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/drift/compare`,
+    'POST',
+    {
+      baseline_dataset_id: baselineDatasetId,
+      candidate_dataset_id: candidateDatasetId,
+    },
   );
 }

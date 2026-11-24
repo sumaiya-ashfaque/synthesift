@@ -11,6 +11,7 @@ import {
   Columns3,
   FileSpreadsheet,
   GitBranch,
+  GitCompareArrows,
   Lock,
   Network,
   Play,
@@ -23,6 +24,7 @@ import {
 import { AIRemediationPanel } from '@/app/components/ai-remediation-panel';
 import { AppShell } from '@/app/components/shell/app-shell';
 import { ColumnInspectorDrawer } from '@/app/components/studio/column-inspector-drawer';
+import { DriftInspector } from '@/app/components/studio/drift-inspector';
 import {
   InteractiveDataGrid,
   type ActiveColumnFilter,
@@ -58,7 +60,7 @@ import type {
 } from '@/lib/types';
 
 type ResultList<T> = T[] | { results: T[] };
-type StudioTab = 'overview' | 'grid' | 'columns' | 'findings' | 'pipeline' | 'lineage' | 'analysis' | 'history';
+type StudioTab = 'overview' | 'grid' | 'columns' | 'findings' | 'pipeline' | 'drift' | 'lineage' | 'analysis' | 'history';
 
 const TABS: ReadonlyArray<{ id: StudioTab; label: string; Icon: typeof Activity }> = [
   { id: 'overview', label: 'Overview', Icon: Activity },
@@ -66,6 +68,7 @@ const TABS: ReadonlyArray<{ id: StudioTab; label: string; Icon: typeof Activity 
   { id: 'columns', label: 'Columns', Icon: Columns3 },
   { id: 'findings', label: 'Findings', Icon: AlertTriangle },
   { id: 'pipeline', label: 'Pipeline', Icon: SlidersHorizontal },
+  { id: 'drift', label: 'Drift', Icon: GitCompareArrows },
   { id: 'lineage', label: 'Lineage', Icon: Network },
   { id: 'analysis', label: 'AI & remediation', Icon: Sparkles },
   { id: 'history', label: 'History', Icon: GitBranch },
@@ -1239,6 +1242,16 @@ export function DatasetStudio() {
                       Dataset must reach READY status before building transformation pipelines.
                     </p>
                   )
+                )}
+
+                {/* TAB: ML DRIFT DETECTION */}
+                {tab === 'drift' && (
+                  <DriftInspector
+                    workspaceId={workspaceId}
+                    projectId={projectId}
+                    datasets={datasets}
+                    activeDatasetId={dataset.id}
+                  />
                 )}
 
                 {/* TAB 6: INTERACTIVE LINEAGE DAG */}
