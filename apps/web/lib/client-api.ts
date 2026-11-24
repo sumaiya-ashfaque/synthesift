@@ -4,9 +4,12 @@ import type {
   ContractRunRecord,
   DataContractRecord,
   DatasetRowsResponse,
+  DraftPipelineResponse,
   DriftComparisonReport,
   DSLStep,
+  GuardrailBenchmarkResponse,
   PipelineRunRecord,
+  ProjectAIEvalsResponse,
   ProjectLineageGraph,
   TransformationRecipeRecord,
   WorkspaceMember,
@@ -542,5 +545,36 @@ export async function fetchContractRuns(
 ): Promise<ContractRunRecord[]> {
   return request<ContractRunRecord[]>(
     `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/contract-runs`,
+  );
+}
+
+export async function fetchProjectAiEvals(
+  workspaceId: string,
+  projectId: string,
+): Promise<ProjectAIEvalsResponse> {
+  return request<ProjectAIEvalsResponse>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/ai-evals`,
+  );
+}
+
+export async function runAiGuardrailBenchmark(
+  workspaceId: string,
+  projectId: string,
+): Promise<GuardrailBenchmarkResponse> {
+  return request<GuardrailBenchmarkResponse>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/ai-evals/offline-benchmark`,
+    'POST',
+  );
+}
+
+export async function draftPipelineFromAiReport(
+  workspaceId: string,
+  projectId: string,
+  datasetId: string,
+  reportId: string,
+): Promise<DraftPipelineResponse> {
+  return request<DraftPipelineResponse>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/ai-reports/${reportId}/draft-pipeline`,
+    'POST',
   );
 }

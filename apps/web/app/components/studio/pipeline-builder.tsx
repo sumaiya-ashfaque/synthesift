@@ -43,6 +43,8 @@ type Props = {
   datasetId: string;
   columns: string[];
   canEdit: boolean;
+  initialSteps?: DSLStep[];
+  draftNotice?: string;
   onDatasetDerived?: (derivedDatasetId: string) => void;
 };
 
@@ -154,9 +156,11 @@ export function PipelineBuilder({
   datasetId,
   columns,
   canEdit,
+  initialSteps,
+  draftNotice,
   onDatasetDerived,
 }: Props) {
-  const [steps, setSteps] = useState<DSLStep[]>([]);
+  const [steps, setSteps] = useState<DSLStep[]>(() => initialSteps ?? []);
   const [recipes, setRecipes] = useState<TransformationRecipeRecord[]>([]);
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>('');
   const [runs, setRuns] = useState<PipelineRunRecord[]>([]);
@@ -175,7 +179,7 @@ export function PipelineBuilder({
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [notice, setNotice] = useState('');
+  const [notice, setNotice] = useState(draftNotice ?? '');
 
   useEffect(() => {
     let active = true;

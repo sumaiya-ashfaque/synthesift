@@ -499,3 +499,92 @@ export type ContractRunRecord = {
   results: ContractRuleResult[];
   created_at: string;
 };
+
+export type AIEvalSummary = {
+  total_reports: number;
+  ready_reports: number;
+  failed_reports: number;
+  schema_compliance_rate: number;
+  citation_grounding_rate: number;
+  total_recommendations: number;
+  safe_abstention_count: number;
+  mean_latency_ms: number | null;
+  p95_latency_ms: number | null;
+  privacy_egress_policy: string;
+};
+
+export type AIEvalTechniqueRow = {
+  technique: string;
+  runs: number;
+  ready: number;
+  failed: number;
+  citation_grounding_rate: number;
+  avg_recommendations: number;
+  mean_latency_ms: number | null;
+};
+
+export type AIEvalModelRow = {
+  model: string;
+  runs: number;
+  ready: number;
+  failed: number;
+  citation_grounding_rate: number;
+  avg_recommendations: number;
+  mean_latency_ms: number | null;
+};
+
+export type AIEvalRecentRun = {
+  id: string;
+  dataset_id: string;
+  dataset_filename: string;
+  technique: string;
+  model: string;
+  status: string;
+  error_code: string;
+  recommendation_count: number;
+  grounded_ratio: number;
+  latency_ms: number | null;
+  created_at: string;
+};
+
+export type ProjectAIEvalsResponse = {
+  summary: AIEvalSummary;
+  by_technique: AIEvalTechniqueRow[];
+  by_model: AIEvalModelRow[];
+  failure_breakdown: Record<string, number>;
+  recent_runs: AIEvalRecentRun[];
+};
+
+export type GuardrailBenchmarkCase = {
+  id: string;
+  category: string;
+  title: string;
+  expected_outcome: 'accept' | 'reject';
+  actual_outcome: 'accept' | 'reject';
+  guardrail_code: string;
+  passed: boolean;
+  detail: string;
+};
+
+export type GuardrailBenchmarkResponse = {
+  suite_version: string;
+  total_cases: number;
+  passed_cases: number;
+  pass_rate: number;
+  duration_ms: number;
+  cases: GuardrailBenchmarkCase[];
+};
+
+export type DraftPipelineResponse = {
+  report_id: string;
+  source_recommendation_count: number;
+  steps: DSLStep[];
+  rationale_map: Array<{
+    step_index: number;
+    op: string;
+    column: string;
+    from_recommendation: string;
+    evidence_ids: string[];
+  }>;
+  safety_notice: string;
+};

@@ -1,11 +1,12 @@
 'use client';
 
 import { FormEvent, useCallback, useEffect, useState } from 'react';
-import { Lock, RefreshCw, Sparkles } from 'lucide-react';
+import { ArrowRight, Lock, RefreshCw, SlidersHorizontal, Sparkles } from 'lucide-react';
 import { AIReportComparison } from '@/app/components/ai-report-comparison';
 import { RemediationWorkflowPanel } from '@/app/components/remediation-workflow-panel';
 import { request } from '@/lib/client-api';
 import { cn } from '@/lib/cn';
+import type { DraftPipelineResponse, DSLStep } from '@/lib/types';
 
 type Evidence = {
   columns: { id: string; name: string; missing_percent: number | null }[];
@@ -45,6 +46,7 @@ type Props = {
   projectId: string;
   datasetId: string;
   canRun: boolean;
+  onLoadPipelineSteps?: (steps: DSLStep[], summaryNote: string) => void;
 };
 
 const FAILURE: Record<string, string> = {
@@ -67,7 +69,13 @@ function evidenceLabel(id: string, evidence: Evidence | undefined): string {
   return id;
 }
 
-export function AIRemediationPanel({ workspaceId, projectId, datasetId, canRun }: Props) {
+export function AIRemediationPanel({
+  workspaceId,
+  projectId,
+  datasetId,
+  canRun,
+  onLoadPipelineSteps,
+}: Props) {
   const base =
     `/api/v1/workspaces/${workspaceId}/projects/${projectId}` +
     `/datasets/${datasetId}/ai-reports`;
@@ -81,6 +89,8 @@ export function AIRemediationPanel({ workspaceId, projectId, datasetId, canRun }
   const [consent, setConsent] = useState(false);
   const [userPrompt, setUserPrompt] = useState('');
   const [busy, setBusy] = useState(false);
+  const [draftBusy, setDraftBusy] = useState(false);
+  const [draftNote, setDraftNote] = useState('');
   const [error, setError] = useState('');
 
   const refresh = useCallback(async () => {
@@ -147,6 +157,30 @@ export function AIRemediationPanel({ workspaceId, projectId, datasetId, canRun }
       setError(cause instanceof Error ? cause.message : 'Analysis could not start.');
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function handleDraftPipeline(reportId: string) {
+    if (!onLoadPipelineSteps) return;
+    setDraftBusy(true);
+    setDraftNote('');
+    setError('');
+    try {
+      const draft = await request<DraftPipelineResponse>(`${base}/${reportId}/draft-pipeline`, 'POST');
+      if (!draft.steps.length) {
+        setDraftNote(
+          'This report recommends retention or manual review only — no automated DSL steps were synthesized.',
+        );
+        return;
+      }
+      onLoadPipelineSteps(
+        draft.steps,
+        `Drafted ${draft.steps.length} validated DSL step(s) from AI report citations. Review & preview before applying.`,
+      );
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Unable to draft pipeline steps from this report.');
+    } finally {
+      setDraftBusy(false);
     }
   }
 
@@ -357,12 +391,34 @@ export function AIRemediationPanel({ workspaceId, projectId, datasetId, canRun }
         </p>
       ) : (
         <div className="space-y-4">
-          <div className="rounded-lg border border-[var(--ss-border)] bg-[var(--ss-canvas)] p-4 space-y-1.5">
-            <p className="text-sm font-medium text-[var(--ss-text)]">{current.result.summary}</p>
-            <p className="font-mono text-[11px] text-[var(--ss-muted)]">
-              Model: {current.model} · Technique: {current.technique} · Proposals require human approval.
-            </p>
+          <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-[var(--ss-border)] bg-[var(--ss-canvas)] p-4">
+            <div className="space-y-1.5 min-w-0 flex-1">
+              <p className="text-sm font-medium text-[var(--ss-text)]">{current.result.summary}</p>
+              <p className="font-mono text-[11px] text-[var(--ss-muted)]">
+                Model: {current.model} · Technique: {current.technique} · Proposals require human approval.
+              </p>
+            </div>
+            {canRun && onLoadPipelineSteps && (
+              <button
+                type="button"
+                disabled={draftBusy}
+                onClick={() => void handleDraftPipeline(current.id)}
+                className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-[var(--ss-primary-border)] bg-[var(--ss-primary-wash)] px-3 font-mono text-[11px] font-semibold text-[var(--ss-primary)] hover:opacity-90 disabled:opacity-50"
+              >
+                <SlidersHorizontal className="h-3.5 w-3.5" />
+                <span>{draftBusy ? 'Drafting DSL…' : 'Draft into Pipeline Builder'}</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            )}
           </div>
+          {draftNote && (
+            <p
+              role="status"
+              className="rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-3.5 py-2 text-xs text-[var(--ss-muted)]"
+            >
+              {draftNote}
+            </p>
+          )}
 
           <div className="space-y-3">
             {(current.result.recommendations ?? []).map((item, index) => (
