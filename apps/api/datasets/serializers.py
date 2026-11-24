@@ -1,5 +1,4 @@
-
-"""Validation and representation of dataset admissions."""
+"""Validation and representation of multi-format dataset admissions."""
 
 from pathlib import PurePath
 
@@ -7,7 +6,7 @@ from django.conf import settings
 from rest_framework import serializers
 
 from .models import Dataset
-from .storage import UploadTooLarge
+from .storage import SUPPORTED_EXTENSIONS, UploadTooLarge
 
 
 class DatasetUploadSerializer(serializers.Serializer):
@@ -15,16 +14,17 @@ class DatasetUploadSerializer(serializers.Serializer):
 
     def validate_file(self, uploaded):
         name = uploaded.name or ""
+        ext = name.rsplit(".", 1)[-1].lower() if "." in name else ""
 
         if (
             not name
             or name != PurePath(name.replace("\\", "/")).name
             or len(name) > 255
             or any(ord(char) < 32 or ord(char) == 127 for char in name)
-            or not name.lower().endswith(".csv")
+            or ext not in SUPPORTED_EXTENSIONS
         ):
             raise serializers.ValidationError(
-                "Provide a CSV file with a valid filename."
+                "Provide a CSV, TSV, Parquet, Excel (.xlsx), or JSON/NDJSON file with a valid filename."
             )
 
         if (
@@ -43,6 +43,7 @@ class DatasetSerializer(serializers.ModelSerializer):
             "id",
             "project",
             "filename",
+            "file_format",
             "size_bytes",
             "sha256",
             "status",

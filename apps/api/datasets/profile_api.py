@@ -81,14 +81,21 @@ class DatasetProfileView(APIView):
         if dataset.status != Dataset.Status.READY:
             raise DatasetNotReady()
 
+        force = str(request.query_params.get("force", "")).lower() in {"1", "true", "yes"}
+        if isinstance(request.data, dict) and request.data.get("force") is True:
+            force = True
+
         with transaction.atomic():
             profile, created = DatasetProfile.objects.get_or_create(dataset=dataset)
             enqueue = created
 
             if not created:
+                retryable = [DatasetProfile.Status.FAILED]
+                if force:
+                    retryable.append(DatasetProfile.Status.READY)
                 changed = DatasetProfile.objects.filter(
                     dataset=dataset,
-                    status=DatasetProfile.Status.FAILED,
+                    status__in=retryable,
                 ).update(
                     status=DatasetProfile.Status.QUEUED,
                     result={},

@@ -21,7 +21,7 @@ from projects.models import Project
 from .deletion import delete_dataset
 from .models import Dataset
 from .serializers import DatasetSerializer, DatasetUploadSerializer
-from .storage import save_upload, storage_path
+from .storage import infer_file_format, save_upload, storage_path
 from .tasks import ingest_dataset
 
 logger = logging.getLogger(__name__)
@@ -139,6 +139,7 @@ class DatasetListView(APIView):
                     project=project,
                     uploaded_by=request.user,
                     filename=uploaded.name,
+                    file_format=infer_file_format(uploaded.name),
                     storage_key=key,
                     sha256=checksum,
                     size_bytes=size,

@@ -723,6 +723,145 @@ paths:
         '401': {description: Authentication required}
         '404': {description: Applied remediation not found}
         '422': {description: Derived file integrity failed}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/seed-demo:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [datasets]
+      operationId: seedDemoDatasets
+      summary: Seed realistic multi-format sample datasets into a project
+      responses:
+        '201': {description: Sample datasets created and profiled}
+        '401': {description: Authentication required}
+        '403': {description: Owner or editor required}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/rows:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [datasets]
+      operationId: listDatasetRows
+      summary: Query paginated dataset rows via DuckDB with cell flags and PII masking
+      responses:
+        '200': {description: Paginated dataset rows and diagnostic cell flags}
+        '401': {description: Authentication required}
+        '403': {description: Unmasking PII requires owner or editor access}
+        '404': {description: Dataset not found}
+        '409': {description: Dataset is not ready}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/recipes:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [pipelines]
+      operationId: listRecipes
+      summary: List reusable transformation recipes in a project
+      responses:
+        '200': {description: Project transformation recipes}
+    post:
+      tags: [pipelines]
+      operationId: createRecipe
+      summary: Save a validated reusable transformation recipe
+      responses:
+        '201': {description: Saved transformation recipe}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/recipes/{recipe_id}:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: recipe_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [pipelines]
+      operationId: retrieveRecipe
+      summary: Get a saved recipe
+      responses:
+        '200': {description: Saved recipe}
+    patch:
+      tags: [pipelines]
+      operationId: updateRecipe
+      summary: Update a saved recipe
+      responses:
+        '200': {description: Updated recipe}
+    delete:
+      tags: [pipelines]
+      operationId: deleteRecipe
+      summary: Delete a saved recipe
+      responses:
+        '204': {description: Deleted}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/lineage:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [pipelines]
+      operationId: projectLineage
+      summary: Retrieve project dataset version lineage DAG
+      responses:
+        '200': {description: Lineage nodes and edges}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/pipelines:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [pipelines]
+      operationId: listPipelineRuns
+      summary: List pipeline runs for a dataset
+      responses:
+        '200': {description: Pipeline runs}
+    post:
+      tags: [pipelines]
+      operationId: previewPipelineRun
+      summary: Execute a dry-run transformation pipeline and return cell-level diffs
+      responses:
+        '201': {description: Previewed pipeline run}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/pipelines/suggest:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [pipelines]
+      operationId: suggestPipelineSteps
+      summary: Auto-draft deterministic starter cleaning steps from profile findings
+      responses:
+        '200': {description: Suggested DSL steps}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/pipelines/export-code:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [pipelines]
+      operationId: exportPipelineCode
+      summary: Generate reproducible Polars, Pandas, or DuckDB SQL code from a DSL plan
+      responses:
+        '200': {description: Generated code}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/pipelines/{run_id}/approve:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: run_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [pipelines]
+      operationId: approvePipelineRun
+      summary: Approve a previewed pipeline run and materialize an immutable derived dataset
+      responses:
+        '200': {description: Applied pipeline run with derived dataset and quality delta}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/pipelines/{run_id}/export:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: run_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [pipelines]
+      operationId: exportPipelineDataset
+      summary: Export derived dataset as CSV, Parquet, or Excel (.xlsx)
+      responses:
+        '200': {description: Exported file attachment}
 
 components:
   schemas:

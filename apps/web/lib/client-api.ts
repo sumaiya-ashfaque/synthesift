@@ -1,5 +1,12 @@
 import { apiErrorMessage } from './error-copy';
-
+import type {
+  DatasetRowsResponse,
+  DSLStep,
+  PipelineRunRecord,
+  ProjectLineageGraph,
+  TransformationRecipeRecord,
+  WorkspaceMember,
+} from './types';
 
 export type Account = {
   id: number;
@@ -26,10 +33,13 @@ export type Project = {
   updated_at: string;
 };
 
+export type DatasetFormat = 'csv' | 'tsv' | 'parquet' | 'xlsx' | 'json' | 'ndjson';
+
 export type Dataset = {
   id: string;
   project: string;
   filename: string;
+  file_format?: DatasetFormat;
   size_bytes: number;
   sha256: string;
   status: 'queued' | 'processing' | 'ready' | 'failed';
@@ -47,6 +57,16 @@ export type DatasetPage = {
   previous: string | null;
   results: Dataset[];
 };
+
+export const SUPPORTED_DATASET_EXTENSIONS = [
+  '.csv',
+  '.tsv',
+  '.parquet',
+  '.xlsx',
+  '.json',
+  '.jsonl',
+  '.ndjson',
+] as const;
 
 type Method = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
@@ -149,15 +169,17 @@ export async function uploadDataset(
   file: File,
 ): Promise<Dataset> {
   if (!file.size) {
-    throw new Error('Choose a non-empty CSV file.');
+    throw new Error('Choose a non-empty dataset file.');
   }
 
   if (file.size > 10 * 1024 * 1024) {
-    throw new Error('CSV files must be 10 MB or smaller.');
+    throw new Error('Dataset files must be 10 MB or smaller.');
   }
 
-  if (!file.name.toLowerCase().endsWith('.csv')) {
-    throw new Error('Choose a .csv file.');
+  const lower = file.name.toLowerCase();
+  const validExt = SUPPORTED_DATASET_EXTENSIONS.some((ext) => lower.endsWith(ext));
+  if (!validExt) {
+    throw new Error('Choose a CSV, TSV, Parquet, Excel (.xlsx), or JSON/NDJSON file.');
   }
 
   const token = await csrfToken();
@@ -191,7 +213,7 @@ export async function uploadDataset(
 
     if (response.status === 413) {
       throw new Error(
-        'CSV files must be 10 MB or smaller.',
+        'Dataset files must be 10 MB or smaller.',
       );
     }
 
@@ -230,7 +252,7 @@ export async function uploadDataset(
       }
 
       throw new Error(
-        'Invalid CSV upload. Check the file and try again.',
+        'Invalid dataset upload. Check the file and try again.',
       );
     }
 
@@ -240,4 +262,165 @@ export async function uploadDataset(
   }
 
   return (await response.json()) as Dataset;
+}
+
+export type RowsQueryParams = {
+  limit?: number;
+  offset?: number;
+  sortBy?: string;
+  sortDir?: 'asc' | 'desc';
+  search?: string;
+  filterCol?: string;
+  filterOp?: string;
+  filterVal?: string;
+  issueOnly?: 'all' | 'any' | 'nulls' | 'whitespace' | 'sentinel' | 'outliers';
+  maskPii?: boolean;
+};
+
+export async function fetchDatasetRows(
+  workspaceId: string,
+  projectId: string,
+  datasetId: string,
+  params: RowsQueryParams = {},
+): Promise<DatasetRowsResponse> {
+  const qs = new URLSearchParams();
+  if (params.limit != null) qs.set('limit', String(params.limit));
+  if (params.offset != null) qs.set('offset', String(params.offset));
+  if (params.sortBy) qs.set('sort_by', params.sortBy);
+  if (params.sortDir) qs.set('sort_dir', params.sortDir);
+  if (params.search) qs.set('search', params.search);
+  if (params.filterCol) qs.set('filter_col', params.filterCol);
+  if (params.filterOp) qs.set('filter_op', params.filterOp);
+  if (params.filterVal) qs.set('filter_val', params.filterVal);
+  if (params.issueOnly && params.issueOnly !== 'all') qs.set('issue_only', params.issueOnly);
+  if (params.maskPii != null) qs.set('mask_pii', String(params.maskPii));
+
+  const suffix = qs.toString() ? `?${qs.toString()}` : '';
+  return request<DatasetRowsResponse>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/rows${suffix}`,
+  );
+}
+
+export async function seedDemoDatasets(
+  workspaceId: string,
+  projectId: string,
+): Promise<Dataset[]> {
+  return request<Dataset[]>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/seed-demo`,
+    'POST',
+  );
+}
+
+export async function fetchWorkspaceMembers(workspaceId: string): Promise<WorkspaceMember[]> {
+  return request<WorkspaceMember[]>(`/api/v1/workspaces/${workspaceId}/members`);
+}
+
+export async function addWorkspaceMember(
+  workspaceId: string,
+  username: string,
+  role: 'editor' | 'viewer',
+): Promise<WorkspaceMember> {
+  return request<WorkspaceMember>(`/api/v1/workspaces/${workspaceId}/members`, 'POST', {
+    username,
+    role,
+  });
+}
+
+export async function removeWorkspaceMember(
+  workspaceId: string,
+  userId: number,
+): Promise<void> {
+  return request<void>(`/api/v1/workspaces/${workspaceId}/members/${userId}`, 'DELETE');
+}
+
+export async function fetchProjectRecipes(
+  workspaceId: string,
+  projectId: string,
+): Promise<TransformationRecipeRecord[]> {
+  return request<TransformationRecipeRecord[]>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/recipes`,
+  );
+}
+
+export async function createProjectRecipe(
+  workspaceId: string,
+  projectId: string,
+  payload: { name: string; description?: string; steps: DSLStep[] },
+): Promise<TransformationRecipeRecord> {
+  return request<TransformationRecipeRecord>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/recipes`,
+    'POST',
+    payload,
+  );
+}
+
+export async function fetchPipelineRuns(
+  workspaceId: string,
+  projectId: string,
+  datasetId: string,
+): Promise<PipelineRunRecord[]> {
+  return request<PipelineRunRecord[]>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/pipelines`,
+  );
+}
+
+export async function suggestPipelineSteps(
+  workspaceId: string,
+  projectId: string,
+  datasetId: string,
+): Promise<{ steps: DSLStep[]; count?: number; reason?: string }> {
+  return request<{ steps: DSLStep[]; count?: number; reason?: string }>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/pipelines/suggest`,
+    'POST',
+  );
+}
+
+export async function previewPipelineRun(
+  workspaceId: string,
+  projectId: string,
+  datasetId: string,
+  payload: { steps: DSLStep[]; recipe_id?: string | null; mask_pii?: boolean },
+): Promise<PipelineRunRecord> {
+  return request<PipelineRunRecord>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/pipelines`,
+    'POST',
+    payload,
+  );
+}
+
+export async function approvePipelineRun(
+  workspaceId: string,
+  projectId: string,
+  datasetId: string,
+  runId: string,
+  outputFilename?: string,
+): Promise<PipelineRunRecord> {
+  return request<PipelineRunRecord>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/pipelines/${runId}/approve`,
+    'POST',
+    { approve: true, ...(outputFilename ? { output_filename: outputFilename } : {}) },
+  );
+}
+
+export async function exportPipelineCode(
+  workspaceId: string,
+  projectId: string,
+  datasetId: string,
+  steps: DSLStep[],
+  language: 'polars' | 'pandas' | 'sql',
+): Promise<{ language: string; code: string }> {
+  return request<{ language: string; code: string }>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/pipelines/export-code`,
+    'POST',
+    { steps, language },
+  );
+}
+
+export async function fetchProjectLineage(
+  workspaceId: string,
+  projectId: string,
+): Promise<ProjectLineageGraph> {
+  return request<ProjectLineageGraph>(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/lineage`,
+  );
 }
