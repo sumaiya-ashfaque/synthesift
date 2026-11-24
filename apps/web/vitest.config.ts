@@ -5,6 +5,12 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('.', import.meta.url)) } },
   test: {
     environment: 'jsdom',
+    pool: 'threads',
+    poolOptions: {
+      threads: {
+        singleThread: true,
+      },
+    },
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
     setupFiles: ['./tests/setup.ts'],
   },

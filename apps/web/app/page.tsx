@@ -1,26 +1,241 @@
 import Link from 'next/link';
-import { Brand } from "@/app/components/brand";
+import {
+  ArrowRight,
+  Database,
+  FileCheck2,
+  GitBranch,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
+import { Brand } from '@/app/components/brand';
+import { InteractivePreview } from '@/app/components/landing/interactive-preview';
+
+const GUARANTEES = [
+  {
+    index: '01',
+    title: 'Deterministic Engine',
+    body: 'Polars and DuckDB compute exact quantiles, IQR outlier fences, Pearson correlations, and structural shapes across CSV, TSV, Parquet, Excel, and JSON.',
+    Icon: Database,
+  },
+  {
+    index: '02',
+    title: 'Zero-Row AI Egress',
+    body: 'PII risk is flagged automatically. Only aggregate column schemas and stable evidence IDs (C1, F1) leave the server—raw rows never enter prompts.',
+    Icon: Lock,
+  },
+  {
+    index: '03',
+    title: 'Human-Approved DSL',
+    body: 'AI proposals cite verifiable evidence and never run arbitrary Python or SQL. Deterministic previews require explicit human sign-off before materialization.',
+    Icon: ShieldCheck,
+  },
+  {
+    index: '04',
+    title: 'Immutable Provenance',
+    body: 'Every uploaded original is SHA-256 verified and never mutated in place. Approved remediations create versioned derived datasets with PDF audit trails.',
+    Icon: GitBranch,
+  },
+];
+
+const ARCHITECTURE_SPECS = [
+  { layer: 'Analytical Engine', stack: 'DuckDB + Polars + openpyxl', detail: 'In-memory SQL grid filtering, 12-bin histograms, Luhn PII scanner' },
+  { layer: 'Application API', stack: 'Django 5.2 + DRF + Celery', detail: 'Session/CSRF auth, workspace RBAC, OpenAPI-verified contracts' },
+  { layer: 'AI Guardrails', stack: 'Server-side Gemini + Schema Repair', detail: '4 prompt paradigms, strict evidence-ID citation validation' },
+  { layer: 'Frontend Studio', stack: 'Next.js 16 + TanStack Table + SVG', detail: 'Swiss precision instrument UI, ⌘K palette, inline sparklines' },
+];
 
 export default function Home() {
   return (
-    <main className="site-shell">
-      <header className="topbar">
-        <Brand />
-        <Link className="secondary-link" href="/login">Sign in</Link>
+    <div className="min-h-screen bg-[var(--ss-canvas)] text-[var(--ss-text)]">
+      {/* Top Architectural Navigation */}
+      <header className="sticky top-0 z-30 border-b border-[var(--ss-border)] bg-[var(--ss-surface)]/95 backdrop-blur-xs">
+        <div className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-6">
+          <Brand />
+
+          <nav className="hidden md:flex items-center gap-7 text-xs font-medium text-[var(--ss-muted)]">
+            <a href="#guarantees" className="hover:text-[var(--ss-text)] no-underline">
+              Guarantees
+            </a>
+            <a href="#architecture" className="hover:text-[var(--ss-text)] no-underline">
+              Architecture
+            </a>
+            <Link href="/api/docs/" className="hover:text-[var(--ss-text)] no-underline">
+              OpenAPI Spec
+            </Link>
+          </nav>
+
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/login"
+              className="inline-flex h-9 items-center rounded-md border border-[var(--ss-border)] bg-[var(--ss-surface)] px-3.5 text-xs font-medium text-[var(--ss-text)] no-underline hover:bg-[var(--ss-surface-hover)]"
+            >
+              Sign in
+            </Link>
+            <Link
+              href="/register"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[var(--ss-primary)] px-3.5 text-xs font-semibold text-white no-underline hover:bg-[var(--ss-primary-hover)]"
+            >
+              <span>Open Studio</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
       </header>
-      <section className="hero">
-        <p className="eyebrow">AI-assisted data quality engineering</p>
-        <h1>More reliable data.<br /><span>Better decisions.</span></h1>
-        <p className="lead">Organize datasets into secure projects. SyntheSift is being built to identify data-quality issues and guide controlled remediation using verified evidence.</p>
-        <div className="hero-actions">
-          <Link className="primary-link" href="/register">Create an account</Link>
-          <Link className="secondary-link" href="/login">Open your workspaces</Link>
+
+      {/* Hero Section */}
+      <section className="relative border-b border-[var(--ss-border)] overflow-hidden">
+        <div className="mx-auto max-w-[1280px] px-6 py-16 lg:py-24">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            <div className="lg:col-span-5 space-y-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--ss-border)] bg-[var(--ss-surface)] px-3 py-1 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-[var(--ss-primary)]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--ss-primary)]" />
+                <span>Data Quality & Remediation Workbench</span>
+              </div>
+
+              <h1 className="text-4xl sm:text-[46px] font-semibold tracking-[-0.038em] leading-[1.06] text-[var(--ss-text)]">
+                Inspect every cell.
+                <br />
+                <span className="text-[var(--ss-muted)]">Prove every fix.</span>
+              </h1>
+
+              <p className="text-[15px] leading-relaxed text-[var(--ss-muted)]">
+                SyntheSift combines a deterministic DuckDB/Polars profiling engine, automated PII masking, and evidence-grounded AI review so data teams diagnose and remediate tabular datasets without risking silent corruption or raw data leakage.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <Link
+                  href="/register"
+                  className="inline-flex h-10 items-center gap-2 rounded-md bg-[var(--ss-primary)] px-5 text-xs font-semibold text-white no-underline hover:bg-[var(--ss-primary-hover)]"
+                >
+                  <span>Create workspace</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+                <Link
+                  href="/workbench"
+                  className="inline-flex h-10 items-center gap-2 rounded-md border border-[var(--ss-border-strong)] bg-[var(--ss-surface)] px-5 text-xs font-semibold text-[var(--ss-text)] no-underline hover:bg-[var(--ss-surface-hover)]"
+                >
+                  <span>Launch Data Studio</span>
+                </Link>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-2 font-mono text-[11px] text-[var(--ss-subtle)]">
+                <span>CSV · TSV · Parquet · XLSX · JSON</span>
+                <span>·</span>
+                <span>Zero-Row LLM Egress</span>
+                <span>·</span>
+                <span>Audit PDF Export</span>
+              </div>
+            </div>
+
+            <div className="lg:col-span-7">
+              <InteractivePreview />
+            </div>
+          </div>
         </div>
       </section>
-      <section className="panel" aria-label="Product capabilities">
-        <h2>Data quality, from intake to validation.</h2>
-        <p className="muted">Workspace and project management are available. Dataset uploads, profiling, AI recommendations and transformation execution are upcoming capabilities.</p>
+
+      {/* Architectural Guarantees Grid */}
+      <section id="guarantees" className="border-b border-[var(--ss-border)] bg-[var(--ss-surface)]">
+        <div className="mx-auto max-w-[1280px] px-6 py-16">
+          <div className="max-w-xl mb-10">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--ss-primary)]">
+              ENGINEERING PRINCIPLES
+            </span>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.028em]">
+              Built like an instrument, not a black-box chatbot.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border-t border-l border-[var(--ss-border)]">
+            {GUARANTEES.map(({ index, title, body, Icon }) => (
+              <div
+                key={index}
+                className="border-r border-b border-[var(--ss-border)] p-6 space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs font-semibold text-[var(--ss-subtle)]">
+                    {index}
+                  </span>
+                  <Icon className="h-4 w-4 text-[var(--ss-primary)]" strokeWidth={1.6} />
+                </div>
+                <h3 className="text-sm font-semibold text-[var(--ss-text)]">{title}</h3>
+                <p className="text-xs leading-relaxed text-[var(--ss-muted)]">{body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </section>
-    </main>
+
+      {/* System Architecture Specification Table */}
+      <section id="architecture" className="mx-auto max-w-[1280px] px-6 py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+          <div className="lg:col-span-4 space-y-3">
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--ss-primary)]">
+              SYSTEM ARCHITECTURE
+            </span>
+            <h2 className="text-2xl font-semibold tracking-[-0.028em]">
+              End-to-end verifiable pipeline.
+            </h2>
+            <p className="text-xs leading-relaxed text-[var(--ss-muted)]">
+              Designed as a clean modular monolith with strict trust boundaries between untrusted user uploads, deterministic analytics workers, and external model APIs.
+            </p>
+            <div className="pt-2 flex flex-col gap-2 text-xs">
+              <div className="flex items-center gap-2 text-[var(--ss-text)]">
+                <FileCheck2 className="h-4 w-4 text-[var(--ss-primary)]" />
+                <span>SHA-256 verified immutable file store</span>
+              </div>
+              <div className="flex items-center gap-2 text-[var(--ss-text)]">
+                <Sparkles className="h-4 w-4 text-[var(--ss-primary)]" />
+                <span>One-click multi-format demo datasets included</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-8 overflow-hidden rounded-lg border border-[var(--ss-border)] bg-[var(--ss-surface)]">
+            <table className="w-full border-collapse text-left text-xs">
+              <thead className="border-b border-[var(--ss-border)] bg-[var(--ss-surface-subtle)] font-mono text-[10px] uppercase tracking-wider text-[var(--ss-muted)]">
+                <tr>
+                  <th className="px-4 py-3">Layer</th>
+                  <th className="px-4 py-3">Technology</th>
+                  <th className="px-4 py-3">Responsibility</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[var(--ss-border)]">
+                {ARCHITECTURE_SPECS.map((row) => (
+                  <tr key={row.layer}>
+                    <td className="px-4 py-3.5 font-semibold text-[var(--ss-text)] whitespace-nowrap">
+                      {row.layer}
+                    </td>
+                    <td className="px-4 py-3.5 font-mono text-[11px] text-[var(--ss-primary)] whitespace-nowrap">
+                      {row.stack}
+                    </td>
+                    <td className="px-4 py-3.5 text-[var(--ss-muted)]">{row.detail}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-[var(--ss-border)] bg-[var(--ss-surface)]">
+        <div className="mx-auto flex flex-wrap max-w-[1280px] items-center justify-between gap-4 px-6 py-6 font-mono text-[11px] text-[var(--ss-subtle)]">
+          <span>SyntheSift · Deterministic Data Quality & Remediation Studio</span>
+          <div className="flex items-center gap-5">
+            <Link href="/login" className="hover:text-[var(--ss-text)] no-underline">
+              Sign in
+            </Link>
+            <Link href="/workbench" className="hover:text-[var(--ss-text)] no-underline">
+              Studio
+            </Link>
+            <Link href="/api/docs/" className="hover:text-[var(--ss-text)] no-underline">
+              API Docs
+            </Link>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }
