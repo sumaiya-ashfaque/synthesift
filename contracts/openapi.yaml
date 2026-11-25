@@ -998,6 +998,102 @@ paths:
       summary: Deterministically synthesize allowlisted DSL pipeline steps from a grounded AI report
       responses:
         '200': {description: Validated DSL pipeline draft}
+  /api/v1/workspaces/{workspace_id}/audit-logs:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [governance]
+      operationId: listWorkspaceAuditLogs
+      summary: Query immutable workspace governance audit events
+      responses:
+        '200': {description: Workspace audit events}
+  /api/v1/workspaces/{workspace_id}/tokens:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [governance]
+      operationId: listPersonalAccessTokens
+      summary: List workspace Personal Access Tokens
+      responses:
+        '200': {description: Workspace access tokens}
+    post:
+      tags: [governance]
+      operationId: createPersonalAccessToken
+      summary: Mint a new SHA-256 hashed workspace Personal Access Token
+      responses:
+        '201': {description: Minted PAT with one-time raw secret}
+  /api/v1/workspaces/{workspace_id}/tokens/{token_id}:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: token_id, in: path, required: true, schema: {type: string, format: uuid}}
+    delete:
+      tags: [governance]
+      operationId: revokePersonalAccessToken
+      summary: Immediately revoke a workspace Personal Access Token
+      responses:
+        '204': {description: Revoked}
+  /api/v1/workspaces/{workspace_id}/webhooks:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [governance]
+      operationId: listWebhookEndpoints
+      summary: List workspace webhook endpoints
+      responses:
+        '200': {description: Workspace webhooks}
+    post:
+      tags: [governance]
+      operationId: createWebhookEndpoint
+      summary: Register an SSRF-validated HMAC-SHA256 webhook endpoint
+      responses:
+        '201': {description: Created webhook endpoint}
+  /api/v1/workspaces/{workspace_id}/webhooks/{webhook_id}:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: webhook_id, in: path, required: true, schema: {type: string, format: uuid}}
+    patch:
+      tags: [governance]
+      operationId: updateWebhookEndpoint
+      summary: Update or toggle a webhook endpoint
+      responses:
+        '200': {description: Updated webhook}
+    delete:
+      tags: [governance]
+      operationId: deleteWebhookEndpoint
+      summary: Delete a webhook endpoint
+      responses:
+        '204': {description: Deleted}
+  /api/v1/workspaces/{workspace_id}/webhooks/{webhook_id}/test:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: webhook_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [governance]
+      operationId: testWebhookEndpoint
+      summary: Send or dry-run a signed HMAC-SHA256 test webhook delivery
+      responses:
+        '200': {description: Delivery telemetry and signature header}
+  /api/v1/workspaces/{workspace_id}/webhooks/{webhook_id}/deliveries:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: webhook_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [governance]
+      operationId: listWebhookDeliveries
+      summary: List recent webhook delivery attempts
+      responses:
+        '200': {description: Webhook deliveries}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/ci/gate:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+    post:
+      tags: [governance]
+      operationId: evaluateCiQualityGate
+      summary: Headless CI/CD quality, PII, contract, and drift gate (200 pass / 422 fail)
+      responses:
+        '200': {description: Gate passed}
+        '422': {description: Gate failed}
 
 components:
   schemas:

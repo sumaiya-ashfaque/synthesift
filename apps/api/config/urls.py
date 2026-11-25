@@ -29,6 +29,16 @@ from datasets.demo_api import DatasetDemoSeedView
 from datasets.library_api import DatasetLibraryImportView, DatasetLibraryView
 from datasets.profile_api import DatasetProfileView
 from datasets.rows_api import DatasetRowsView
+from governance.api import (
+    CIGateEvaluateView,
+    PersonalAccessTokenDetailView,
+    PersonalAccessTokenListView,
+    WebhookDeliveryListView,
+    WebhookEndpointDetailView,
+    WebhookEndpointListView,
+    WebhookEndpointTestView,
+    WorkspaceAuditLogView,
+)
 from identity.api import (
     CsrfView,
     LoginView,
@@ -202,5 +212,37 @@ urlpatterns = [
     path(
         "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/contract-runs",
         DatasetContractRunsView.as_view(), name="dataset-contract-runs",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/audit-logs",
+        WorkspaceAuditLogView.as_view(), name="workspace-audit-logs",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/tokens",
+        PersonalAccessTokenListView.as_view(), name="workspace-tokens",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/tokens/<uuid:token_id>",
+        PersonalAccessTokenDetailView.as_view(), name="workspace-token-detail",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/webhooks",
+        WebhookEndpointListView.as_view(), name="workspace-webhooks",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/webhooks/<uuid:webhook_id>",
+        WebhookEndpointDetailView.as_view(), name="workspace-webhook-detail",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/webhooks/<uuid:webhook_id>/test",
+        WebhookEndpointTestView.as_view(), name="workspace-webhook-test",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/webhooks/<uuid:webhook_id>/deliveries",
+        WebhookDeliveryListView.as_view(), name="workspace-webhook-deliveries",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/ci/gate",
+        CIGateEvaluateView.as_view(), name="project-ci-gate",
     ),
 ]

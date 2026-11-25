@@ -215,6 +215,21 @@ class ContractEvaluateView(APIView):
             pass_rate=outcome["pass_rate"],
             results=outcome["results"],
         )
+        from governance.services import record_audit_event
+
+        record_audit_event(
+            workspace,
+            actor=request.user,
+            action="contract.evaluated",
+            resource_type="data_contract",
+            resource_id=str(contract.id),
+            outcome="success" if outcome["status"] == "passed" else ("warning" if outcome["status"] == "warning" else "blocked"),
+            metadata={
+                "contract_name": contract.name,
+                "dataset_filename": dataset.filename,
+                "pass_rate": outcome["pass_rate"],
+            },
+        )
         return Response(ContractRunSerializer(run).data, status=status.HTTP_201_CREATED)
 
 

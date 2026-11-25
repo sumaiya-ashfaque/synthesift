@@ -332,6 +332,21 @@ class PipelineApproveView(APIView):
                 run.applied_at = timezone.now()
                 run.save(update_fields=["result_dataset", "status", "applied_at", "validation"])
             key_to_cleanup = None
+            from governance.services import record_audit_event
+
+            record_audit_event(
+                workspace,
+                actor=request.user,
+                action="pipeline.applied",
+                resource_type="pipeline_run",
+                resource_id=str(run.id),
+                metadata={
+                    "source_filename": dataset.filename,
+                    "derived_filename": run.validation.get("derived_filename", ""),
+                    "step_count": len(run.steps),
+                    "score_delta": run.validation.get("score_delta"),
+                },
+            )
             return Response(PipelineRunSerializer(run).data)
         except (PipelineDSLError, AdmissionError) as exc:
             raise ValidationError({"pipeline": [str(exc)]}) from exc

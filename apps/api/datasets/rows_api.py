@@ -155,6 +155,18 @@ class DatasetRowsView(APIView):
         mask_pii = _parse_bool(request.query_params.get("mask_pii"), default=True)
         if not mask_pii and not can_unmask:
             raise PermissionDenied("Only workspace owners and editors can reveal unmasked PII cells.")
+        if not mask_pii:
+            from governance.services import record_audit_event
+
+            record_audit_event(
+                workspace,
+                actor=request.user,
+                action="pii.unmasked",
+                resource_type="dataset",
+                resource_id=str(dataset.id),
+                outcome="warning",
+                metadata={"filename": dataset.filename},
+            )
 
         limit = _parse_int(request.query_params.get("limit"), default=50, minimum=1, maximum=200)
         offset = _parse_int(request.query_params.get("offset"), default=0, minimum=0, maximum=250_000)

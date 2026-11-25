@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     "ai_remediation",
     "pipelines",
     "contracts_engine",
+    "governance",
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -105,7 +106,10 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ["identity.authentication.ApiSessionAuthentication"],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "identity.authentication.ApiSessionAuthentication",
+        "governance.authentication.PersonalAccessTokenAuthentication",
+    ],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "core.exceptions.exception_handler",
