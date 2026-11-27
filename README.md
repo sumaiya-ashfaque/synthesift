@@ -1,143 +1,218 @@
 # SyntheSift
 
-**AI-Powered Data Quality Analysis & Remediation Platform.**
+**Privacy-First Data Quality, ML Drift Observability, Declarative Data Contracts & Safe Transformation Studio.**
 
-*Profile. Detect. Explain. Remediate. Validate.*
+*Profile. Detect. Gate. Transform. Prove.*
 
-[![CI](https://img.shields.io/badge/CI-configured-informational)](#quality-and-verification) [![Release](https://img.shields.io/badge/milestone-M1.1-blue)](#release-status) [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![API Contract](https://img.shields.io/badge/OpenAPI_3.0-77_Operations-0F5C44)](contracts/openapi.yaml)
+[![Engine](https://img.shields.io/badge/Analytical_Engine-DuckDB_%2B_Polars-141515)](#architecture)
+[![UI](https://img.shields.io/badge/Studio_UI-Next.js_16_%2B_Tailwind_v4-0F5C44)](#studio-capabilities)
+[![License](https://img.shields.io/badge/License-MIT-374151)](LICENSE)
 
-> **Implementation status: M1.1 identity and project foundations.** Authentication, workspaces and project management are implemented. Dataset uploads, profiling, Gemini recommendations, transformations and exports are not yet available. A configured CI workflow is not evidence that CI has passed.
+---
 
-## Overview
+## Why SyntheSift Exists
 
-SyntheSift is designed as a standalone, production-minded data-quality platform. Its product architecture combines deterministic data-quality engines with evidence-grounded Gemini reasoning and a restricted, audited transformation DSL. Source datasets remain immutable; proposed changes are reviewed and validated before execution.
+Most data-quality tools fall into one of two failure modes: heavyweight cloud platforms that leak raw customer rows into third-party AI APIs, or brittle notebook scripts with no reproducibility, lineage, or CI/CD enforcement.
 
-M0 established the technical baseline. M1.1 adds session authentication, workspace membership and project CRUD with authorization tests.
+**SyntheSift v2.0** is a full-stack modular monolith engineered around four non-negotiable guarantees:
 
-## Stack
+1. **Zero Raw-Row Leakage:** Stored statistical profiles, ML drift comparisons, contract evaluation logs, audit events, and outbound LLM prompts never contain raw dataset cells or PII.
+2. **Deterministic Safety Over LLM Code Execution:** AI analysis produces schema-validated, evidence-cited proposals (`F1`, `C2`, ...) that deterministically synthesize into a strictly allowlisted 15-operation Transformation DSL—never arbitrary generated Python or SQL.
+3. **Immutable Content-Addressed Provenance:** Every uploaded file and derived output is SHA-256 verified on disk and linked inside an interactive project Lineage DAG (`v0 -> Recipe -> v1`).
+4. **CI/CD Ready Governance:** Engineering pipelines can gate pull requests headlessly via SHA-256 hashed Personal Access Tokens (`ss_pat_...`), declarative YAML Data Contracts, and HMAC-SHA256 signed webhooks.
 
-| Layer | Technology |
-| --- | --- |
-| Web | Next.js / React / TypeScript / Node.js 22 |
-| API | Django REST Framework / Python 3.12 |
-| Jobs | Celery / Redis |
-| Persistence | PostgreSQL 17 |
-| Diagnostics | DRF Spectacular OpenAPI; dependency health checks |
-| M2, future | Pandas / NumPy / Matplotlib / Seaborn |
-| M3, future | Gemini API (server-side only) |
+---
 
-## Branding and existing local data
+## Architecture
 
-The application is now named **SyntheSift**. Developers moving from the previous M0 Docker stack should read [the rebranding migration guide](docs/11_REBRANDING_MIGRATION.md) **before** starting the renamed Compose project. A Compose project rename normally creates new volumes. The guide provides a separate `compose.legacy-data.yaml` overlay for reusing the existing PostgreSQL and Redis volumes without removing them.
+```mermaid
+flowchart LR
+    UI["Next.js 16 Studio UI<br/>(Swiss Precision · Tailwind v4 · SVG Charts · ⌘K)"]
+    CI["GitHub Actions / CI Runner<br/>(Bearer ss_pat_...)"]
+    API["Django 5.2 + DRF API<br/>(77 OpenAPI Operations · Session+CSRF & PAT Auth)"]
+    SSE["Real-Time SSE Stream<br/>(text/event-stream)"]
+    ENG["Analytical Engine<br/>(DuckDB + Polars + PyYAML)"]
+    DB["PostgreSQL 17 / SQLite<br/>(Workspaces, Contracts, Recipes, Lineage, Audit)"]
+    FS["Immutable SHA-256 Storage<br/>(CSV, TSV, Parquet, XLSX, JSON/NDJSON)"]
+    PRIV["Privacy Gate & AI Eval Harness<br/>(Aggregate-Only Egress + Guardrail Suite)"]
+    WH["SSRF-Protected Webhooks<br/>(HMAC-SHA256 Signed)"]
 
-## Quick start
-
-Prerequisites: Docker Engine and Docker Compose v2, `curl`, and available ports 3000 and 8000.
-
-```bash
-cp .env.example .env
-# Replace DJANGO_SECRET_KEY and POSTGRES_PASSWORD for any shared environment.
-docker compose up --build -d
-docker compose ps
-bash scripts/smoke.sh
-docker compose exec -T api python manage.py verify_worker --timeout 12
+    UI -->|"Same-Origin Proxy + CSRF"| API
+    UI -.->|"EventSource"| SSE
+    CI -->|"POST /ci/gate (200 / 422)"| API
+    API --> ENG
+    API --> DB
+    API --> SSE
+    API --> WH
+    ENG --> FS
+    API --> PRIV
 ```
 
-Open `http://localhost:3000` for the product entry page, then register and sign in to manage workspaces and projects and `http://localhost:3000/api/docs/` for the implemented API schema. API endpoints are also available directly at `http://localhost:8000/api/v1/...` through a loopback-only binding.
+---
 
-The `migrate` service completes Django migrations before API and worker startup. Redis and PostgreSQL are internal to the Docker network and have no host port bindings. The browser accesses API endpoints through the Next.js same-origin reverse proxy.
+## Studio Capabilities
 
-### Health routes
+### 1. Multi-Format Analytical Engine & Interactive Data Grid
+- **6 Tabular Formats:** Native ingestion and admission validation for `CSV`, `TSV`, `Parquet`, `Excel (.xlsx)`, `JSON`, and `NDJSON`.
+- **Polars/DuckDB Profiler v2:** Quantiles (`p5`–`p95`), standard deviation, IQR outlier fences, skewness, 12-bin histograms, Pearson correlation matrix, whitespace/sentinel-null diagnostics, structural pattern shapes (`Aaaa`, `999-999-9999`), semantic type inference, and a transparent **5-Dimension Quality Index** (`Completeness`, `Uniqueness`, `Validity`, `Consistency`, `Privacy Safety`).
+- **PII & Secret Scanner:** Automatically detects emails, phones, SSNs, Luhn-verified credit cards, IPs, and API keys. Masks cells by default in the DuckDB-backed Data Grid with RBAC-gated reveal (audited automatically as `pii.unmasked`).
 
-| Route | Meaning | Status |
-| --- | --- | --- |
-| `GET /api/v1/health/live` | API process responds | 200 |
-| `GET /api/v1/health/ready` | PostgreSQL and Redis respond | 200 or 503 |
-| `GET /api/v1/meta` | Service name, version and milestone | 200 |
-| `GET /api/schema/` | Generated OpenAPI | 200 |
-| `GET /api/docs/` | Swagger UI | 200 |
+### 2. 15-Op Safe Transformation DSL, Cell-Level Diff & Lineage DAG
+- **Visual Pipeline Builder:** Compose ordered steps across 15 validated primitives (`trim_whitespace`, `normalize_case`, `normalize_sentinel_nulls`, `replace_values`, `regex_replace` with ReDoS nested-quantifier blocking, `fill_missing`, `cast_type`, `standardize_date`, `clip_numeric`, `drop_duplicate_rows`, `filter_rows`, `rename_column`, `drop_columns`, `split_column`, `mask_pii`).
+- **Dry-Run Cell Diffs & Quality Delta:** Preview exact before/after row & cell modifications before approving materialization of an immutable derived version.
+- **Reproducible Code & Multi-Format Export:** Export any pipeline plan as runnable **Polars**, **Pandas**, or **DuckDB SQL**, save reusable project **Recipes**, and download cleaned datasets in `CSV`, `Parquet`, or `Excel (.xlsx)`.
+- **Interactive Lineage DAG:** Visualizes dataset derivation chains (`v0 -> v1 -> v2`) with quality score deltas and one-click version inspection.
 
-Worker execution is checked through the **private management command** `verify_worker`, not an unprotected HTTP task dispatcher.
+### 3. ML Drift Detection, Declarative Data Contracts & AI Eval Workbench
+- **Statistical ML Drift Inspector:** Compare baseline vs. candidate datasets for schema drift (added/removed/type-changed columns), Population Stability Index (**PSI**), exact two-sample **Kolmogorov-Smirnov** test statistic & p-value, overlaid dual-distribution SVG histograms, and privacy-safe SHA-256 hashed categorical **Jensen-Shannon Divergence (JSD)** & TVD.
+- **10-Rule Declarative Data Contracts (`synthesift.contract/v1`):** Author expectations visually or in Git-ready YAML (`expect_column_to_exist`, `expect_column_not_null`, `expect_column_unique`, `expect_column_values_between`, `expect_column_values_in_set`, `expect_column_regex_match`, `expect_column_no_pii`, `expect_column_no_whitespace_padding`, `expect_table_row_count_between`, `expect_column_mean_between`), 1-click **Auto-generate from profile**, and persist pass/fail Contract Gate runs.
+- **AI Eval Workbench & Copilot-to-Pipeline Bridge:** Tracks live citation grounding, strict JSON schema compliance, latency, and prompt-technique reliability across saved reports; includes an offline **6-Case Adversarial Guardrail Benchmark Suite** (hallucinated evidence rejection, code-exec blocking, prompt-injection overflow, ReDoS prevention, calibrated abstention) and a **Draft into Pipeline Builder** button that deterministically translates grounded AI citations into validated DSL steps.
 
-### Operations
+### 4. Enterprise Governance, CI/CD Quality Gates & Real-Time SSE (`/governance`)
+- **Workspace Personal Access Tokens (`ss_pat_...`):** SHA-256 hashed at rest, displayed once on creation, strictly workspace-scoped with granular scopes (`read`, `write`, `gate:run`), expiry, and instant revocation.
+- **Headless CI/CD Quality Gate API (`POST .../ci/gate`):** Accepts multipart uploads or existing `dataset_id`, enforces quality score floor, zero-PII policy, Data Contracts, and ML Drift thresholds, returns **HTTP 200** (pass) or **HTTP 422** (fail) plus a ready-to-post **GitHub PR Comment Markdown** table.
+- **SSRF-Protected HMAC-SHA256 Webhooks:** Blocks private/loopback/metadata IPs, signs deliveries with `X-SyntheSift-Signature: t=<ts>,v1=<hmac_sha256>`, and records delivery telemetry.
+- **Immutable Workspace Audit Trail:** Filterable JSON-exportable log of PAT lifecycle, CI gates, contract runs, pipeline approvals, webhook operations, and PII unmask events.
+- **Real-Time SSE Streaming (`/events`):** `text/event-stream` endpoint + `useDatasetEventStream` hook pushing live job status updates directly into the Dataset Studio.
 
-```bash
-docker compose logs --follow --tail=100
-docker compose exec api python manage.py check
-docker compose exec api python manage.py showmigrations
-docker compose down
+---
+
+## Security & Privacy Invariants
+
+| Boundary | Enforcement Mechanism |
+| :--- | :--- |
+| Raw cell storage in profiles/drift/audit | Pattern shapes & SHA-256 token hashes only; verified by automated privacy regression tests |
+| External AI egress | Explicit user consent checkbox; aggregate evidence only (zero raw rows sent) |
+| LLM output safety | Strict JSON schema validation, evidence-ID grounding check, allowlisted actions, zero code execution |
+| Regex safety (DSL & Contracts) | Nested quantifier detection rejects catastrophic ReDoS patterns before execution |
+| PII visibility | Masked by default in Data Grid & Pipeline Diffs; unmask requires `owner`/`editor` role and writes `pii.unmasked` audit event |
+| Webhook SSRF defense | Blocks `localhost`, RFC1918 private networks, link-local (`169.254.169.254`), and internal domains |
+| Auth & CSRF | HttpOnly SameSite=Lax sessions + strict CSRF on browser mutations; SHA-256 hashed workspace-scoped PATs for headless CI |
+
+---
+
+## CI/CD Quality Gate Example (GitHub Actions)
+
+```yaml
+name: SyntheSift Data Quality Gate
+on:
+  pull_request:
+    paths: ["data/**/*.csv", "data/**/*.parquet"]
+
+jobs:
+  data-quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enforce Quality, Zero-PII & Data Contract Gate
+        env:
+          SYNTHESIFT_URL: ${{ secrets.SYNTHESIFT_URL }}
+          SYNTHESIFT_TOKEN: ${{ secrets.SYNTHESIFT_TOKEN }}
+        run: |
+          curl --fail-with-body -sS -X POST \
+            "${SYNTHESIFT_URL}/api/v1/workspaces/${{ vars.SYNTHESIFT_WORKSPACE_ID }}/projects/${{ vars.SYNTHESIFT_PROJECT_ID }}/ci/gate" \
+            -H "Authorization: Bearer ${SYNTHESIFT_TOKEN}" \
+            -F "file=@data/release_batch.parquet" \
+            -F "min_quality_score=85" \
+            -F "fail_on_pii=true"
 ```
 
-`docker compose down --volumes` removes local PostgreSQL and Redis data **irreversibly**. Never use it on an environment containing data you need.
+---
 
-## Repository structure
+## Quick Start
 
-```text
-apps/
-  web/                     Next.js SSR dashboard, health client and frontend tests
-  api/                     Django API, health views, Celery tasks and backend tests
-contracts/
-  openapi.yaml             Reviewed M0 implemented route baseline
-  openapi.future.yaml      Design-only API from architecture v1.0
-  *.schema.json            Future AI and plan JSON Schema contracts
-docs/
-  01...08                  Product harness, architecture, stakeholders, privacy, QA and roadmap
-  09_M0_IMPLEMENTATION.md  M0 decisions, gates and known limitations
-  adr/                     Architectural decision records
-  diagrams/                Source and generated architecture/stakeholder diagrams
-scripts/                   Contract comparison and smoke checks
-.github/workflows/         API, web and containerized integration CI
-```
+### Option A: Local Development (No Docker Required)
 
-## Quality and verification
-
-API test suite (PostgreSQL required):
+**1. Backend (Python 3.12+ / Django 5.2 / DuckDB / Polars)**
 
 ```bash
-python -m pip install -r apps/api/requirements-dev.txt
+python -m venv .venv
+# Linux/macOS: source .venv/bin/activate
+# Windows PowerShell: .\.venv\Scripts\Activate.ps1
+
+pip install -r apps/api/requirements.txt -r apps/api/requirements-dev.txt
+
+export DATABASE_URL="sqlite:///$(pwd)/local_data/dev_v2.sqlite3"
+export DATASET_STORAGE_ROOT="$(pwd)/local_data/datasets"
+export CACHE_REDIS_URL="locmem://"
+export CELERY_TASK_ALWAYS_EAGER="true"
+export DJANGO_DEBUG="true"
+export DJANGO_CSRF_TRUSTED_ORIGINS="http://localhost:3001,http://127.0.0.1:3001,http://localhost:3000,http://127.0.0.1:3000"
+
 cd apps/api
-pytest -q
-python manage.py check
-python manage.py spectacular --file ../../contracts/openapi.generated.yaml --validate
-cd ../..
-python scripts/check_contract.py contracts/openapi.yaml contracts/openapi.generated.yaml
+python manage.py migrate
+python manage.py runserver 127.0.0.1:8001 --noreload
 ```
 
-Frontend test suite:
+**2. Frontend (Node.js 22+ / Next.js 16 / Tailwind v4)**
 
 ```bash
 cd apps/web
 npm install
+API_INTERNAL_URL=http://127.0.0.1:8001 npx next dev -H 127.0.0.1 -p 3001
+```
+
+Open `http://localhost:3001`, register an account, create a workspace & project, and click **Load sample datasets** to immediately explore CSV, Parquet, and JSON datasets across the Studio Workbench (`/workbench`) and Governance Console (`/governance`). Interactive Swagger docs are available at `http://127.0.0.1:8001/api/docs/`.
+
+### Option B: Docker Compose (Full Stack with PostgreSQL 17, Redis & Celery)
+
+```bash
+cp .env.example .env
+docker compose up --build -d
+docker compose exec -T api python manage.py verify_worker --timeout 12
+```
+
+---
+
+## Repository Structure
+
+```text
+apps/
+  api/
+    ai_remediation/     Evidence-grounded Gemini review, AI Eval Workbench, Copilot-to-DSL bridge
+    contracts_engine/   10-rule Data Contracts engine, YAML import/export, persisted gate runs
+    core/               Health probes, request ID middleware, structured exception handling
+    datasets/           Multi-format ingestion, DuckDB/Polars profiler v2, PII scanner, Rows API, SSE stream
+    governance/         PAT auth, headless CI/CD Quality Gate, SSRF-safe HMAC webhooks, Audit Trail
+    identity/           Session/CSRF auth, workspaces, RBAC membership policy
+    pipelines/          15-op safe DSL, dry-run cell diffs, Polars/Pandas/SQL codegen, Lineage DAG, ML Drift
+    projects/           Workspace-isolated project containers
+    tests/              Pytest integration, security, privacy, drift, contract, governance & SSE suites
+  web/
+    app/
+      components/
+        governance/     CI/CD Gate Simulator, PAT manager, HMAC Webhooks & Audit Trail console
+        landing/        Interactive landing showcase
+        shell/          AppShell navigation rail & ⌘K Command Palette
+        studio/         Dataset Studio, DuckDB Grid, Column Drawer, Pipeline Builder, Drift, Contracts, Lineage, AI Evals
+        ui/             Handcrafted Swiss SVG charts (Score Meter, 5D Bars, Histograms, Box Plots, Heatmap)
+    lib/                Typed API client, SSE event stream hook, formatters
+    tests/              Vitest + React Testing Library component & workflow suites
+contracts/
+  openapi.yaml          Reviewed OpenAPI 3.0 contract (77 operations verified against Django schema)
+scripts/                OpenAPI drift check, repo secret audit, release & smoke checks
+```
+
+---
+
+## Verification & Quality Gates
+
+```bash
+# Backend: Lint, Django checks, OpenAPI contract parity (0 errors), full pytest suite, secret audit
+ruff check apps/api
+python scripts/check_repo_secrets.py
+cd apps/api
+DATABASE_URL="sqlite:///:memory:" CACHE_REDIS_URL="locmem://" CELERY_TASK_ALWAYS_EAGER="true" python manage.py check
+DATABASE_URL="sqlite:///:memory:" CACHE_REDIS_URL="locmem://" CELERY_TASK_ALWAYS_EAGER="true" python manage.py spectacular --file ../../contracts/openapi.generated.yaml --validate
+python ../../scripts/check_contract.py ../../contracts/openapi.yaml ../../contracts/openapi.generated.yaml
+DATABASE_URL="sqlite:///:memory:" CACHE_REDIS_URL="locmem://" CELERY_TASK_ALWAYS_EAGER="true" pytest -q
+
+# Frontend: ESLint, TypeScript strict check, full Vitest suite
+cd apps/web
 npm run lint
 npm run typecheck
 npm test
-npm run build
 ```
 
-The CI workflow runs backend checks, frontend checks, then Compose integration probes with a real enqueued Celery task. Root `Makefile` targets offer shortcuts.
-
-**Dependency reproducibility limitation:** This artifact was generated in an environment without npm/PyPI access. A transitive dependency lock cannot be reliably created or validated here; `npm install` currently resolves npm dependencies and Python files specify bounded ranges. Before declaring M0 reproducible/green, resolve and commit full lock files in a connected development environment, switch installs to frozen/locked mode, and rerun all CI gates. See `docs/09_M0_IMPLEMENTATION.md`.
-
-## Architecture and security
-
-Read `docs/02_ARCHITECTURE.md` before expanding the application. The architecture is a modular monolith, not microservices. The proposed AI output is **advisory** and must never be treated as executable code. Privacy filtering, typed plans and approval gates are part of the future feature milestones, not M0 capabilities.
-
-Security concerns and responsible disclosure are documented in [SECURITY.md](SECURITY.md). Engineering and documentation conventions are in [CONTRIBUTING.md](CONTRIBUTING.md).
-
-## Release status
-
-Current code: **v0.1.0 / M0 rebranded foundation candidate**. The original M0 Docker stack and basic system probes were reported passing in the developer environment; the rebranded stack needs its own startup verification. Dependency lockfiles and green GitHub Actions remain release gates.
-
-## Identity and project setup
-
-Open `/register` for local account creation, then `/login` and `/workspaces`. Public deployment must disable self-registration until account verification and abuse prevention are provided. For permissions, endpoints, tests and remaining risks, see `docs/12_M1_1_IDENTITY_PROJECTS.md`.
-
-Feature branch changes should be reviewed through a pull request and merged only after passing GitHub Actions.
-
-### Reproducible product workflow and evaluation
-
-The implemented review flow is: CSV upload → profiling and rule-based findings → consented Gemini analysis → human-reviewed, bounded remediation → derived-dataset validation → authorized CSV/PDF export. The source CSV is immutable. AI proposals are explanatory and never run arbitrary generated code.
-
-Four selectable prompt techniques are available: zero-shot, few-shot, structured reasoning, and role-based; outputs must cite profile evidence IDs. A collapsible comparison on saved reports displays **descriptive** metadata, not prompt accuracy. A read-only operator audit is available with `python manage.py evaluate_ai_reports` inside the API container.
-
-For synthetic acceptance data, tests, a live-demo checklist and deployment limitations, see [product completion](docs/16_PRODUCT_COMPLETION.md), [deployment readiness](docs/17_DEPLOYMENT_READINESS.md), and the [technical PDF](docs/SyntheSift_Technical_Documentation.pdf). Run `python scripts/check_release.py --url http://127.0.0.1:8000` for a read-only health smoke. Green local tests are not proof of production security, cloud availability, or model correctness.
+Security reporting and architectural decision records live in [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md), and `docs/`.
