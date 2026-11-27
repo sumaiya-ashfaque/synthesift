@@ -936,7 +936,7 @@ export function DatasetStudio() {
                                   />
                                 </div>
                                 <p className="text-xs text-[var(--ss-muted)]">
-                                  Click <strong>Re-run profile</strong> above to compute v2 distributions, PII scanning, and 5-dimension scores.
+                                  Click <strong>Re-run profile</strong> above to compute distributions, PII scanning, and 5-dimension scores.
                                 </p>
                               </div>
                             )}

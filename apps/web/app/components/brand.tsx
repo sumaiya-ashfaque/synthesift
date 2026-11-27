@@ -16,13 +16,8 @@ export function Brand({ compact = false, className }: { compact?: boolean; class
         <Image src="/synthesift-mark.svg" alt="" width={28} height={28} />
       </span>
       {!compact && (
-        <span className="flex items-baseline gap-1.5">
-          <span className="text-[15px] font-semibold tracking-[-0.025em]">
-            SyntheSift
-          </span>
-          <span className="font-mono text-[10px] font-medium uppercase tracking-wider text-[var(--ss-subtle)]">
-            v2
-          </span>
+        <span className="text-[15px] font-semibold tracking-[-0.025em]">
+          SyntheSift
         </span>
       )}
     </Link>

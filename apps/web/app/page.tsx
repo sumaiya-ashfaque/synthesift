@@ -240,7 +240,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-[var(--ss-border)] bg-[var(--ss-surface)]">
         <div className="mx-auto flex flex-wrap max-w-[1280px] items-center justify-between gap-4 px-6 py-6 font-mono text-[11px] text-[var(--ss-subtle)]">
-          <span>SyntheSift v2 · Deterministic Data Quality, Drift & CI/CD Studio</span>
+          <span>SyntheSift</span>
           <div className="flex items-center gap-5">
             <Link href="/login" className="hover:text-[var(--ss-primary)] no-underline">
               Sign in
