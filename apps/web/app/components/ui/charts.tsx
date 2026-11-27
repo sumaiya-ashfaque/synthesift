@@ -170,8 +170,8 @@ export function DistributionHistogram({
                 width={barW}
                 height={h}
                 rx={1.5}
-                fill={outOfFence ? 'var(--ss-warn)' : 'var(--ss-primary)'}
-                fillOpacity={isHover ? 1 : outOfFence ? 0.85 : 0.78}
+                fill={outOfFence ? 'var(--ss-amber)' : 'var(--ss-primary)'}
+                fillOpacity={isHover ? 1 : outOfFence ? 0.92 : 0.84}
               />
             </g>
           );
@@ -184,8 +184,8 @@ export function DistributionHistogram({
             x2={lowerX}
             y1={padTop}
             y2={padTop + chartH}
-            stroke="var(--ss-warn)"
-            strokeWidth={1.25}
+            stroke="var(--ss-amber)"
+            strokeWidth={1.5}
             strokeDasharray="3 2"
           />
         )}
@@ -195,8 +195,8 @@ export function DistributionHistogram({
             x2={upperX}
             y1={padTop}
             y2={padTop + chartH}
-            stroke="var(--ss-warn)"
-            strokeWidth={1.25}
+            stroke="var(--ss-amber)"
+            strokeWidth={1.5}
             strokeDasharray="3 2"
           />
         )}
@@ -286,7 +286,7 @@ export function BoxWhiskerPlot({
           width={Math.max(2, (x75 - x25) * 2)}
           height={18}
           rx={2}
-          fill="var(--ss-primary-wash)"
+          fill="var(--ss-sky)"
           stroke="var(--ss-primary)"
           strokeWidth={1.5}
         />
@@ -295,7 +295,7 @@ export function BoxWhiskerPlot({
           x2={x50 * 2}
           y1={6}
           y2={26}
-          stroke="var(--ss-primary)"
+          stroke="var(--ss-amber)"
           strokeWidth={2.5}
         />
       </svg>
@@ -350,7 +350,7 @@ export function QualityDimensionBars({
           score >= 90
             ? 'var(--ss-pass)'
             : score >= 70
-              ? 'var(--ss-warn)'
+              ? 'var(--ss-amber)'
               : 'var(--ss-danger)';
         return (
           <div key={key} className="space-y-1">
@@ -392,7 +392,7 @@ export function QualityScoreMeter({ score }: { score: number | null | undefined 
       : safe >= 88
         ? 'var(--ss-pass)'
         : safe >= 70
-          ? 'var(--ss-warn)'
+          ? 'var(--ss-amber)'
           : 'var(--ss-danger)';
 
   return (
@@ -469,7 +469,7 @@ export function CorrelationHeatmap({
                 style={{
                   left: positive ? '50%' : `${50 - mag * 50}%`,
                   width: `${mag * 50}%`,
-                  backgroundColor: positive ? 'var(--ss-primary)' : 'var(--ss-warn)',
+                  backgroundColor: positive ? 'var(--ss-primary)' : 'var(--ss-amber)',
                 }}
               />
             </div>

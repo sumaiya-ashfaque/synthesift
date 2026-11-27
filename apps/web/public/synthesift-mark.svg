@@ -1,5 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="SyntheSift mark">
-  <rect width="48" height="48" rx="12" fill="#164B3E"/>
-  <path d="M12 14.5h24M16 22h16M20 29.5h8" stroke="#F6FAF7" stroke-width="3.2" stroke-linecap="round"/>
-  <circle cx="24" cy="37" r="3" fill="#A2E0C2"/>
+  <rect width="48" height="48" rx="12" fill="#930031"/>
+  <path d="M12 14.5h24" stroke="#BEDEFF" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M16 22h16" stroke="#FFF2A7" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M20 29.5h8" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round"/>
+  <circle cx="24" cy="37" r="3.2" fill="#FFA500"/>
 </svg>

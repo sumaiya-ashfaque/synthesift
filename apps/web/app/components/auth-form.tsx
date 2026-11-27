@@ -37,40 +37,52 @@ export function AuthForm({ mode }: Props) {
 
   return (
     <div className="min-h-screen grid grid-cols-1 lg:grid-cols-12 bg-[var(--ss-canvas)] text-[var(--ss-text)]">
-      {/* Left Architectural Spec Column */}
-      <aside className="hidden lg:flex lg:col-span-5 flex-col justify-between border-r border-[var(--ss-border)] bg-[var(--ss-surface)] p-10">
-        <Brand />
+      {/* Left Editorial Burgundy Spec Column (#930031 + #FFF2A7 + #FFA500 + #BEDEFF) */}
+      <aside className="hidden lg:flex lg:col-span-5 flex-col justify-between bg-[#930031] text-white p-10 relative overflow-hidden">
+        <div className="ss-palette-bar absolute top-0 left-0 right-0" aria-hidden="true" />
+        <div className="flex items-center gap-2.5">
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#FFF2A7]/35 bg-[#740026] font-mono text-xs font-bold text-[#FFF2A7]">
+            SS
+          </span>
+          <span className="text-[15px] font-semibold tracking-[-0.025em] text-white">
+            SyntheSift{' '}
+            <span className="ml-1 font-mono text-[10px] uppercase tracking-wider text-[#BEDEFF]">
+              v2
+            </span>
+          </span>
+        </div>
 
         <div className="space-y-6 max-w-sm">
           <div>
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--ss-primary)]">
+            <p className="inline-flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[#FFF2A7]">
+              <span className="h-1.5 w-3.5 rounded-full bg-[#FFA500]" />
               TRUST BOUNDARY & ACCESS
             </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">
+            <h2 className="mt-2.5 text-2xl font-semibold tracking-[-0.03em] text-white">
               Workspace-scoped data quality governance.
             </h2>
-            <p className="mt-2 text-xs leading-relaxed text-[var(--ss-muted)]">
-              Every dataset, profile, AI report, and remediation run is isolated inside role-authorized workspaces with full SHA-256 provenance.
+            <p className="mt-2 text-xs leading-relaxed text-[#BEDEFF]">
+              Every dataset, profile, AI report, Data Contract, and remediation run is isolated inside role-authorized workspaces with full SHA-256 provenance.
             </p>
           </div>
 
-          <ul className="space-y-3 border-t border-[var(--ss-border)] pt-6 text-xs text-[var(--ss-muted)]">
+          <ul className="space-y-3 border-t border-white/15 pt-6 text-xs text-white/90">
             <li className="flex items-start gap-2.5">
-              <ShieldCheck className="h-4 w-4 shrink-0 text-[var(--ss-primary)] mt-0.5" />
-              <span>HttpOnly session authentication with strict CSRF validation on all mutations.</span>
+              <ShieldCheck className="h-4 w-4 shrink-0 text-[#FFA500] mt-0.5" />
+              <span>HttpOnly session authentication with strict CSRF validation and SHA-256 PATs.</span>
             </li>
             <li className="flex items-start gap-2.5">
-              <Lock className="h-4 w-4 shrink-0 text-[var(--ss-primary)] mt-0.5" />
-              <span>Automatic PII detection and default cell masking for viewer & editor safety.</span>
+              <Lock className="h-4 w-4 shrink-0 text-[#FFF2A7] mt-0.5" />
+              <span>Automatic PII detection and default cell masking with immutable audit trails.</span>
             </li>
             <li className="flex items-start gap-2.5">
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--ss-primary)] mt-0.5" />
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-[#BEDEFF] mt-0.5" />
               <span>Multi-format DuckDB/Polars engine ready for CSV, Parquet, Excel, and JSON.</span>
             </li>
           </ul>
         </div>
 
-        <p className="font-mono text-[10px] text-[var(--ss-subtle)]">
+        <p className="font-mono text-[10px] text-[#BEDEFF]/85">
           SyntheSift v2 · Evidence first. Every change reviewed.
         </p>
       </aside>

@@ -44,12 +44,12 @@ function DualDistributionChart({
       <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[11px]">
         <span className="font-semibold text-[var(--ss-text)]">{column}</span>
         <div className="flex items-center gap-3 text-[10px]">
-          <span className="inline-flex items-center gap-1.5 text-[var(--ss-muted)]">
-            <span className="inline-block h-2 w-2 rounded-xs border border-[var(--ss-border-strong)] bg-[var(--ss-surface-subtle)]" />
+          <span className="inline-flex items-center gap-1.5 text-[var(--ss-pass)]">
+            <span className="inline-block h-2.5 w-2.5 rounded-xs border border-[var(--ss-pass)]/50 bg-[var(--ss-sky)]" />
             Baseline {active ? `${active.baseline_pct}%` : ''}
           </span>
           <span className="inline-flex items-center gap-1.5 text-[var(--ss-primary)]">
-            <span className="inline-block h-2 w-2 rounded-xs bg-[var(--ss-primary)]" />
+            <span className="inline-block h-2.5 w-2.5 rounded-xs bg-[var(--ss-primary)]" />
             Candidate {active ? `${active.candidate_pct}%` : ''}
           </span>
         </div>
@@ -94,8 +94,9 @@ function DualDistributionChart({
                 width={barW}
                 height={bh}
                 rx={1}
-                fill="var(--ss-surface-subtle)"
-                stroke="var(--ss-border-strong)"
+                fill="var(--ss-sky)"
+                stroke="var(--ss-pass)"
+                strokeOpacity={0.55}
                 strokeWidth={1}
               />
               <rect
@@ -104,8 +105,8 @@ function DualDistributionChart({
                 width={barW}
                 height={ch}
                 rx={1}
-                fill="var(--ss-primary)"
-                fillOpacity={hoverIdx === idx ? 1 : 0.8}
+                fill={hoverIdx === idx ? 'var(--ss-amber)' : 'var(--ss-primary)'}
+                fillOpacity={hoverIdx === idx ? 1 : 0.88}
               />
             </g>
           );

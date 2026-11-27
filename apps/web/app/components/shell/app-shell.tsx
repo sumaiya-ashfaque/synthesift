@@ -80,6 +80,7 @@ export function AppShell({
         className="flex flex-col border-b md:border-b-0 md:border-r border-[var(--ss-border)] bg-[var(--ss-surface)]"
         aria-label="Workspace navigation"
       >
+        <div className="ss-palette-bar" aria-hidden="true" />
         <div className="flex h-14 items-center justify-between px-4 border-b border-[var(--ss-border)]">
           <Brand />
           <button
@@ -97,11 +98,11 @@ export function AppShell({
           {sidebarExtra}
         </div>
 
-        <div className="hidden md:flex items-center justify-between px-4 py-3 border-t border-[var(--ss-border)] font-mono text-[10px] text-[var(--ss-subtle)]">
+        <div className="hidden md:flex items-center justify-between px-4 py-3 border-t border-[var(--ss-border)] bg-[var(--ss-surface-subtle)]/55 font-mono text-[10px] text-[var(--ss-muted)]">
           <span>DUCKDB · POLARS</span>
-          <span className="inline-flex items-center gap-1 text-[var(--ss-pass)]">
-            <span className="h-1.5 w-1.5 rounded-full bg-current" />
-            LOCAL
+          <span className="inline-flex items-center gap-1 rounded bg-[var(--ss-pass-wash)] px-1.5 py-0.5 font-semibold text-[var(--ss-pass)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--ss-amber)]" />
+            LIVE
           </span>
         </div>
       </aside>
@@ -247,14 +248,14 @@ export function AppShell({
                 <Command.Group heading="Appearance">
                   <Command.Item onSelect={() => runCmd(() => setAppTheme('light'))}>
                     <span className="flex items-center gap-2">
-                      <Sun className="h-3.5 w-3.5 text-[var(--ss-muted)]" />
-                      Switch to Alabaster Light
+                      <Sun className="h-3.5 w-3.5 text-[var(--ss-amber)]" />
+                      Switch to Light (Sky & Burgundy)
                     </span>
                   </Command.Item>
                   <Command.Item onSelect={() => runCmd(() => setAppTheme('dark'))}>
                     <span className="flex items-center gap-2">
                       <Moon className="h-3.5 w-3.5 text-[var(--ss-muted)]" />
-                      Switch to Obsidian Dark
+                      Switch to Dark (Obsidian & Amber)
                     </span>
                   </Command.Item>
                 </Command.Group>

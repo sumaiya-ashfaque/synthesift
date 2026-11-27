@@ -1,39 +1,51 @@
 @import "tailwindcss";
 
 /*
- * SyntheSift v2 — Swiss Precision Instrument Design System
- * Warm architectural paper (light) + true neutral obsidian (dark).
- * 1px hairlines, tabular numbers, functional semantic signals only.
+ * SyntheSift v2 — Editorial Bauhaus Precision Design System
+ * Palette: Ice Sky (#BEDEFF) · Sunbeam Cream (#FFF2A7) · Signal Amber (#FFA500) · Imperial Burgundy (#930031)
+ * 1px hairlines, WCAG AA/AAA contrast, tabular monospace metrics, light + dark parity.
  */
 
 :root,
 html[data-theme='light'] {
   color-scheme: light;
-  --ss-canvas: #f6f6f3;
+
+  /* Exact 4-color Color Hunt palette anchors */
+  --ss-sky: #bedeff;
+  --ss-sky-deep: #134074;
+  --ss-cream: #fff2a7;
+  --ss-amber: #ffa500;
+  --ss-burgundy: #930031;
+
+  /* Surfaces & sky-tinted architectural paper */
+  --ss-canvas: #eef5fc;
   --ss-surface: #ffffff;
-  --ss-surface-subtle: #efefeb;
-  --ss-surface-hover: #f3f3ef;
-  --ss-border: #e2e2dc;
-  --ss-border-strong: #c9c9c0;
+  --ss-surface-subtle: #e0effe;
+  --ss-surface-hover: #fff9d6;
+  --ss-border: #c5defa;
+  --ss-border-strong: #9bc4f5;
 
-  --ss-text: #141413;
-  --ss-muted: #52524d;
-  --ss-subtle: #82827b;
+  /* Deep plum-ink typography (harmonized with #930031 & #BEDEFF) */
+  --ss-text: #1c1118;
+  --ss-muted: #513f4a;
+  --ss-subtle: #786470;
 
-  --ss-primary: #0f5c44;
-  --ss-primary-hover: #0a4633;
-  --ss-primary-wash: #e6f2ee;
-  --ss-primary-border: #b6d8cb;
-  --ss-focus: #1f7a5c;
+  /* Primary brand action: Imperial Burgundy (#930031) */
+  --ss-primary: #930031;
+  --ss-primary-hover: #740026;
+  --ss-primary-wash: #fce8ee;
+  --ss-primary-border: #e5a4b8;
+  --ss-focus: #ffa500;
 
-  --ss-pass: #157347;
-  --ss-pass-wash: #e6f4ec;
-  --ss-warn: #b45309;
-  --ss-warn-wash: #fef3e2;
-  --ss-danger: #b91c1c;
-  --ss-danger-wash: #fdecec;
-  --ss-pii: #6d28d9;
-  --ss-pii-wash: #f2ecfe;
+  /* Semantic signals harmonized into the 4-color palette */
+  --ss-pass: #0f457a;
+  --ss-pass-wash: #bedeff;
+  --ss-warn: #8a4f00;
+  --ss-warn-wash: #fff2a7;
+  --ss-danger: #930031;
+  --ss-danger-wash: #fce8ee;
+  --ss-pii: #6b0f47;
+  --ss-pii-wash: #f8e2ef;
 
   --ss-font-sans: var(--font-ibm-sans), "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --ss-font-mono: var(--font-ibm-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
@@ -41,31 +53,41 @@ html[data-theme='light'] {
 
 html[data-theme='dark'] {
   color-scheme: dark;
-  --ss-canvas: #0d0e0e;
-  --ss-surface: #141515;
-  --ss-surface-subtle: #1b1d1d;
-  --ss-surface-hover: #212424;
-  --ss-border: #262929;
-  --ss-border-strong: #383c3c;
 
-  --ss-text: #ecece8;
-  --ss-muted: #9a9b94;
-  --ss-subtle: #6b6d67;
+  --ss-sky: #bedeff;
+  --ss-sky-deep: #bedeff;
+  --ss-cream: #fff2a7;
+  --ss-amber: #ffa500;
+  --ss-burgundy: #930031;
 
-  --ss-primary: #2eb886;
-  --ss-primary-hover: #47ca9a;
-  --ss-primary-wash: #112a22;
-  --ss-primary-border: #1d4d3d;
-  --ss-focus: #34d399;
+  /* Midnight burgundy-obsidian surfaces */
+  --ss-canvas: #120c10;
+  --ss-surface: #1b1218;
+  --ss-surface-subtle: #251921;
+  --ss-surface-hover: #31202b;
+  --ss-border: #3a2634;
+  --ss-border-strong: #55394c;
 
-  --ss-pass: #34d399;
-  --ss-pass-wash: #102920;
-  --ss-warn: #f59e0b;
-  --ss-warn-wash: #2a200f;
-  --ss-danger: #f87171;
-  --ss-danger-wash: #2d1516;
-  --ss-pii: #a78bfa;
-  --ss-pii-wash: #201933;
+  --ss-text: #f7f3f5;
+  --ss-muted: #c2aebc;
+  --ss-subtle: #8f7987;
+
+  /* Lifted crimson-burgundy so white button text keeps >= 5.6:1 contrast */
+  --ss-primary: #c91d55;
+  --ss-primary-hover: #e02f68;
+  --ss-primary-wash: #3b1022;
+  --ss-primary-border: #7d153b;
+  --ss-focus: #ffa500;
+
+  /* Exact #BEDEFF, #FFA500, and #FFF2A7 illuminating dark mode */
+  --ss-pass: #bedeff;
+  --ss-pass-wash: #152b44;
+  --ss-warn: #ffa500;
+  --ss-warn-wash: #342307;
+  --ss-danger: #ff6b92;
+  --ss-danger-wash: #3e1120;
+  --ss-pii: #fff2a7;
+  --ss-pii-wash: #332c11;
 }
 
 @layer base {
@@ -108,6 +130,43 @@ html[data-theme='dark'] {
     outline: 2px solid var(--ss-focus);
     outline-offset: 2px;
   }
+
+  ::selection {
+    background-color: var(--ss-cream);
+    color: var(--ss-burgundy);
+  }
+}
+
+/* Signature 4-color editorial architectural bar (#930031 · #FFA500 · #FFF2A7 · #BEDEFF) */
+.ss-palette-bar {
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    #930031 0%,
+    #930031 32%,
+    #ffa500 32%,
+    #ffa500 54%,
+    #fff2a7 54%,
+    #fff2a7 74%,
+    #bedeff 74%,
+    #bedeff 100%
+  );
+}
+
+/* Atmospheric sky-wash hero band derived from #BEDEFF + #FFF2A7 */
+.ss-hero-surface {
+  background:
+    radial-gradient(circle at 86% 18%, rgba(255, 242, 167, 0.52) 0%, transparent 44%),
+    radial-gradient(circle at 12% 84%, rgba(190, 222, 255, 0.65) 0%, transparent 48%),
+    var(--ss-canvas);
+}
+
+html[data-theme='dark'] .ss-hero-surface {
+  background:
+    radial-gradient(circle at 86% 18%, rgba(255, 165, 0, 0.14) 0%, transparent 42%),
+    radial-gradient(circle at 12% 84%, rgba(147, 0, 49, 0.28) 0%, transparent 48%),
+    var(--ss-canvas);
 }
 
 .tabular-nums {
@@ -120,12 +179,12 @@ html[data-theme='dark'] {
     -45deg,
     transparent,
     transparent 5px,
-    rgba(130, 130, 123, 0.06) 5px,
-    rgba(130, 130, 123, 0.06) 6px
+    rgba(147, 0, 49, 0.06) 5px,
+    rgba(147, 0, 49, 0.06) 6px
   );
 }
 
-/* Subtle architectural dot grid for landing hero frame only */
+/* Subtle architectural grid for hero frame */
 .ss-grid-paper {
   background-image:
     linear-gradient(to right, var(--ss-border) 1px, transparent 1px),
@@ -139,7 +198,7 @@ html[data-theme='dark'] {
   border: 1px solid var(--ss-border-strong);
   border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 24px 64px -16px rgba(147, 0, 49, 0.24);
 }
 
 [cmdk-input] {
@@ -182,7 +241,7 @@ html[data-theme='dark'] {
 
 [cmdk-item][data-selected='true'],
 [cmdk-item]:hover {
-  background: var(--ss-surface-subtle);
+  background: var(--ss-surface-hover);
 }
 
 /* Clean custom scrollbars for data tables */
@@ -198,7 +257,7 @@ html[data-theme='dark'] {
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--ss-subtle);
+  background: var(--ss-primary);
 }
 
 /* Minimal support for legacy status-panel / existing unit test classes */

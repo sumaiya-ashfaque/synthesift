@@ -87,7 +87,7 @@ export function InteractivePreview() {
   const [maskPii, setMaskPii] = useState(true);
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[var(--ss-border-strong)] bg-[var(--ss-surface)] shadow-[0_18px_48px_-24px_rgba(15,23,20,0.22)]">
+    <div className="overflow-hidden rounded-lg border border-[var(--ss-border-strong)] bg-[var(--ss-surface)] shadow-[0_22px_54px_-24px_rgba(147,0,49,0.22)]">
       {/* Instrument Chrome Header */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--ss-border)] bg-[var(--ss-surface-subtle)] px-3.5 py-2.5">
         <div className="flex items-center gap-2 font-mono text-[11px]">
