@@ -57,6 +57,7 @@ import {
   formatPercent,
   shortDigest,
 } from '@/lib/cn';
+import { useDatasetEventStream } from '@/lib/use-dataset-events';
 import type {
   AIReportRecord,
   DatasetProfileRecord,
@@ -299,14 +300,27 @@ export function DatasetStudio() {
   const loaded = details?.key === key ? details : null;
   const profilePending =
     loaded?.profile?.status === 'queued' || loaded?.profile?.status === 'processing';
+  const datasetPending =
+    datasets.find((d) => d.id === datasetId)?.status === 'queued' ||
+    datasets.find((d) => d.id === datasetId)?.status === 'processing';
+  const sseEnabled = Boolean(workspaceId && projectId && datasetId && (profilePending || datasetPending));
+  const sseUrl =
+    workspaceId && projectId && datasetId
+      ? `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/events`
+      : null;
 
-  useEffect(() => {
-    if (!profilePending) return;
-    const timer = window.setInterval(() => {
-      void loadDetails();
-    }, 3000);
-    return () => window.clearInterval(timer);
-  }, [profilePending, loadDetails]);
+  const { connected: sseConnected } = useDatasetEventStream({
+    url: sseUrl,
+    enabled: sseEnabled,
+    onUpdate: (ev) => {
+      if (!ev.pending || ev.profile_status === 'ready' || ev.profile_status === 'failed') {
+        void loadDetails();
+        if (workspaceId && projectId) {
+          void reloadDatasets(workspaceId, projectId, datasetId);
+        }
+      }
+    },
+  });
 
   const workspace = workspaces.find((item) => item.id === workspaceId);
   const project = projects.find((item) => item.id === projectId);
@@ -712,6 +726,15 @@ export function DatasetStudio() {
                 >
                   {dataset.status}
                 </span>
+                {sseConnected && (
+                  <span
+                    className="inline-flex items-center gap-1 rounded-full border border-[var(--ss-primary-border)] bg-[var(--ss-primary-wash)] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase text-[var(--ss-primary)]"
+                    title="Real-time Server-Sent Events stream active"
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
+                    LIVE SSE
+                  </span>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-4 font-mono text-[11px] text-[var(--ss-muted)] tabular-nums">

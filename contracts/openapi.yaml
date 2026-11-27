@@ -1094,6 +1094,17 @@ paths:
       responses:
         '200': {description: Gate passed}
         '422': {description: Gate failed}
+  /api/v1/workspaces/{workspace_id}/projects/{project_id}/datasets/{dataset_id}/events:
+    parameters:
+      - {name: workspace_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: project_id, in: path, required: true, schema: {type: string, format: uuid}}
+      - {name: dataset_id, in: path, required: true, schema: {type: string, format: uuid}}
+    get:
+      tags: [datasets]
+      operationId: streamDatasetEvents
+      summary: Server-Sent Events (SSE) stream of dataset ingestion, profiling, and AI job status
+      responses:
+        '200': {description: text/event-stream status updates}
 
 components:
   schemas:

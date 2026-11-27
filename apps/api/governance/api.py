@@ -8,6 +8,7 @@ from typing import Any
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -235,7 +236,11 @@ class WebhookEndpointDetailView(APIView):
 
     permission_classes = [IsAuthenticated]
 
-    @extend_schema(tags=["governance"], responses={200: WebhookEndpointSerializer})
+    @extend_schema(
+        tags=["governance"],
+        request=WebhookEndpointWriteSerializer,
+        responses={200: WebhookEndpointSerializer},
+    )
     def patch(self, request, workspace_id, webhook_id):
         workspace = _authorized_workspace(request.user, workspace_id, {"owner", "editor"})
         endpoint = get_object_or_404(WebhookEndpoint, pk=webhook_id, workspace=workspace)
@@ -326,6 +331,7 @@ class CIGateEvaluateView(APIView):
 
     @extend_schema(
         tags=["governance"],
+        request=OpenApiTypes.OBJECT,
         responses={
             200: OpenApiResponse(description="CI/CD Quality Gate PASSED"),
             422: OpenApiResponse(description="CI/CD Quality Gate FAILED"),

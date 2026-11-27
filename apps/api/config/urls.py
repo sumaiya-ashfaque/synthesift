@@ -26,6 +26,7 @@ from contracts_engine.api import (
 from core.views import LiveView, MetadataView, ReadyView
 from datasets.api import DatasetDetailView, DatasetListView
 from datasets.demo_api import DatasetDemoSeedView
+from datasets.events_api import DatasetEventsStreamView
 from datasets.library_api import DatasetLibraryImportView, DatasetLibraryView
 from datasets.profile_api import DatasetProfileView
 from datasets.rows_api import DatasetRowsView
@@ -82,6 +83,11 @@ urlpatterns = [
         "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/rows",
         DatasetRowsView.as_view(),
         name="project-dataset-rows",
+    ),
+    path(
+        "api/v1/workspaces/<uuid:workspace_id>/projects/<uuid:project_id>/datasets/<uuid:dataset_id>/events",
+        DatasetEventsStreamView.as_view(),
+        name="project-dataset-events",
     ),
 
     path("api/v1/auth/csrf", CsrfView.as_view(), name="auth-csrf"),
