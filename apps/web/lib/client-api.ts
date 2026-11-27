@@ -1,5 +1,7 @@
 import { apiErrorMessage } from './error-copy';
 import type {
+  AuditEventRecord,
+  CIGateVerdict,
   ContractRule,
   ContractRunRecord,
   DataContractRecord,
@@ -8,10 +10,16 @@ import type {
   DriftComparisonReport,
   DSLStep,
   GuardrailBenchmarkResponse,
+  PatScope,
+  PersonalAccessTokenCreated,
+  PersonalAccessTokenRecord,
   PipelineRunRecord,
   ProjectAIEvalsResponse,
   ProjectLineageGraph,
   TransformationRecipeRecord,
+  WebhookDeliveryRecord,
+  WebhookEndpointCreated,
+  WebhookEndpointRecord,
   WorkspaceMember,
 } from './types';
 
@@ -577,4 +585,131 @@ export async function draftPipelineFromAiReport(
     `/api/v1/workspaces/${workspaceId}/projects/${projectId}/datasets/${datasetId}/ai-reports/${reportId}/draft-pipeline`,
     'POST',
   );
+}
+
+export async function fetchWorkspaceTokens(
+  workspaceId: string,
+): Promise<PersonalAccessTokenRecord[]> {
+  return request<PersonalAccessTokenRecord[]>(`/api/v1/workspaces/${workspaceId}/tokens`);
+}
+
+export async function createWorkspaceToken(
+  workspaceId: string,
+  payload: { name: string; scopes: PatScope[]; expires_in_days?: number | null },
+): Promise<PersonalAccessTokenCreated> {
+  return request<PersonalAccessTokenCreated>(
+    `/api/v1/workspaces/${workspaceId}/tokens`,
+    'POST',
+    payload,
+  );
+}
+
+export async function revokeWorkspaceToken(workspaceId: string, tokenId: string): Promise<void> {
+  return request<void>(`/api/v1/workspaces/${workspaceId}/tokens/${tokenId}`, 'DELETE');
+}
+
+export async function fetchWorkspaceAuditLogs(
+  workspaceId: string,
+  params?: { action?: string; outcome?: string; limit?: number },
+): Promise<AuditEventRecord[]> {
+  const qs = new URLSearchParams();
+  if (params?.action) qs.set('action', params.action);
+  if (params?.outcome) qs.set('outcome', params.outcome);
+  if (params?.limit) qs.set('limit', String(params.limit));
+  const suffix = qs.toString() ? `?${qs.toString()}` : '';
+  return request<AuditEventRecord[]>(`/api/v1/workspaces/${workspaceId}/audit-logs${suffix}`);
+}
+
+export async function fetchWorkspaceWebhooks(
+  workspaceId: string,
+): Promise<WebhookEndpointRecord[]> {
+  return request<WebhookEndpointRecord[]>(`/api/v1/workspaces/${workspaceId}/webhooks`);
+}
+
+export async function createWorkspaceWebhook(
+  workspaceId: string,
+  payload: { name: string; url: string; events: string[]; is_active?: boolean },
+): Promise<WebhookEndpointCreated> {
+  return request<WebhookEndpointCreated>(
+    `/api/v1/workspaces/${workspaceId}/webhooks`,
+    'POST',
+    payload,
+  );
+}
+
+export async function updateWorkspaceWebhook(
+  workspaceId: string,
+  webhookId: string,
+  payload: Partial<{ name: string; is_active: boolean; events: string[] }>,
+): Promise<WebhookEndpointRecord> {
+  return request<WebhookEndpointRecord>(
+    `/api/v1/workspaces/${workspaceId}/webhooks/${webhookId}`,
+    'PATCH',
+    payload,
+  );
+}
+
+export async function deleteWorkspaceWebhook(
+  workspaceId: string,
+  webhookId: string,
+): Promise<void> {
+  return request<void>(`/api/v1/workspaces/${workspaceId}/webhooks/${webhookId}`, 'DELETE');
+}
+
+export async function testWorkspaceWebhook(
+  workspaceId: string,
+  webhookId: string,
+  dryRun = true,
+): Promise<{ delivery: WebhookDeliveryRecord; signature_header: string }> {
+  return request<{ delivery: WebhookDeliveryRecord; signature_header: string }>(
+    `/api/v1/workspaces/${workspaceId}/webhooks/${webhookId}/test`,
+    'POST',
+    { dry_run: dryRun },
+  );
+}
+
+export async function fetchWebhookDeliveries(
+  workspaceId: string,
+  webhookId: string,
+): Promise<WebhookDeliveryRecord[]> {
+  return request<WebhookDeliveryRecord[]>(
+    `/api/v1/workspaces/${workspaceId}/webhooks/${webhookId}/deliveries`,
+  );
+}
+
+export async function runCiQualityGate(
+  workspaceId: string,
+  projectId: string,
+  payload: {
+    dataset_id: string;
+    contract_id?: string | null;
+    baseline_dataset_id?: string | null;
+    min_quality_score?: number;
+    max_psi?: number;
+    fail_on_pii?: boolean;
+    dry_run_webhooks?: boolean;
+  },
+): Promise<CIGateVerdict> {
+  const token = await csrfToken();
+  const response = await fetch(
+    `/api/v1/workspaces/${workspaceId}/projects/${projectId}/ci/gate`,
+    {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRFToken': token,
+      },
+      body: JSON.stringify(payload),
+    },
+  );
+
+  if (response.status === 200 || response.status === 422) {
+    const data = (await response.json()) as Omit<CIGateVerdict, 'http_status'>;
+    return { ...data, http_status: response.status };
+  }
+  if (response.status === 401) throw new Error('Sign in to continue.');
+  if (response.status === 403) throw new Error('You do not have permission for this action.');
+  throw new Error(apiErrorMessage(response.status, response.headers.get('X-Request-ID')));
 }

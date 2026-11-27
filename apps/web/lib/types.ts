@@ -588,3 +588,104 @@ export type DraftPipelineResponse = {
   }>;
   safety_notice: string;
 };
+
+export type PatScope = 'read' | 'write' | 'gate:run';
+
+export type PersonalAccessTokenRecord = {
+  id: string;
+  workspace: string;
+  name: string;
+  token_prefix: string;
+  scopes: PatScope[];
+  expires_at: string | null;
+  last_used_at: string | null;
+  revoked_at: string | null;
+  is_revoked: boolean;
+  created_by: string;
+  created_at: string;
+};
+
+export type PersonalAccessTokenCreated = PersonalAccessTokenRecord & {
+  token: string;
+};
+
+export type AuditEventRecord = {
+  id: string;
+  workspace: string;
+  actor_label: string;
+  action: string;
+  resource_type: string;
+  resource_id: string;
+  outcome: 'success' | 'warning' | 'blocked' | 'failed';
+  metadata: Record<string, unknown>;
+  created_at: string;
+};
+
+export type WebhookEndpointRecord = {
+  id: string;
+  workspace: string;
+  name: string;
+  url: string;
+  events: string[];
+  is_active: boolean;
+  secret_preview: string;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type WebhookEndpointCreated = WebhookEndpointRecord & {
+  signing_secret: string;
+};
+
+export type WebhookDeliveryRecord = {
+  id: string;
+  endpoint: string;
+  event_type: string;
+  status: 'delivered' | 'failed' | 'dry_run';
+  http_status: number | null;
+  response_excerpt: string;
+  payload_summary: Record<string, unknown>;
+  duration_ms: number | null;
+  created_at: string;
+};
+
+export type CIGateCheck = {
+  name: string;
+  passed: boolean;
+  expected: string;
+  observed: string;
+};
+
+export type CIGateVerdict = {
+  http_status: number;
+  verdict: 'passed' | 'failed';
+  exit_code: 0 | 1;
+  dataset: {
+    id: string;
+    filename: string;
+    file_format: string;
+    row_count: number | null;
+    column_count: number | null;
+    sha256: string;
+  };
+  quality_score: number;
+  pii_flagged_columns: number;
+  checks: CIGateCheck[];
+  contract_run: {
+    run_id: string;
+    contract_name: string;
+    status: string;
+    pass_rate: number;
+    passed_rules: number;
+    failed_rules: number;
+  } | null;
+  drift_summary: {
+    baseline_filename: string;
+    status: string;
+    max_psi: number;
+    max_ks: number;
+    drifted_columns: number;
+  } | null;
+  markdown_summary: string;
+};

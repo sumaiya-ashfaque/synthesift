@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { Database, FolderKanban, Layers, ShieldCheck } from 'lucide-react';
+import { Database, FolderKanban, KeyRound, Layers, ShieldCheck } from 'lucide-react';
 import { ThemeToggle } from '@/app/components/theme-toggle';
 import { cn } from '@/lib/cn';
 
-type Destination = 'overview' | 'library' | 'workbench' | 'manage-data';
+type Destination = 'overview' | 'library' | 'workbench' | 'governance' | 'manage-data';
 
 type Props = { current: Destination };
 
@@ -34,6 +34,13 @@ const destinations: ReadonlyArray<{
     label: 'Dataset library',
     detail: 'Cross-workspace dataset catalog and import',
     Icon: Database,
+  },
+  {
+    key: 'governance',
+    href: '/governance',
+    label: 'CI/CD & Governance',
+    detail: 'API tokens, quality gate CI, HMAC webhooks & audit trail',
+    Icon: KeyRound,
   },
   {
     key: 'manage-data',

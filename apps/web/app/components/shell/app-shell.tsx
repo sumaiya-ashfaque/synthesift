@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Database,
   FolderKanban,
+  KeyRound,
   Layers,
   LogOut,
   Moon,
@@ -20,7 +21,7 @@ import { ProductNavigation } from '@/app/components/product-navigation';
 import { setAppTheme } from '@/app/components/theme-toggle';
 import type { Account } from '@/lib/client-api';
 
-export type ShellNavKey = 'overview' | 'library' | 'workbench' | 'manage-data';
+export type ShellNavKey = 'overview' | 'library' | 'workbench' | 'governance' | 'manage-data';
 
 type QuickJump = {
   id: string;
@@ -211,6 +212,13 @@ export function AppShell({
                       Dataset Catalog
                     </span>
                     <span className="font-mono text-[10px] text-[var(--ss-subtle)]">/dataset-library</span>
+                  </Command.Item>
+                  <Command.Item onSelect={() => runCmd(() => router.push('/governance'))}>
+                    <span className="flex items-center gap-2">
+                      <KeyRound className="h-3.5 w-3.5 text-[var(--ss-muted)]" />
+                      CI/CD Gates, Tokens & Audit Trail
+                    </span>
+                    <span className="font-mono text-[10px] text-[var(--ss-subtle)]">/governance</span>
                   </Command.Item>
                   <Command.Item onSelect={() => runCmd(() => router.push('/manage-data'))}>
                     <span className="flex items-center gap-2">
