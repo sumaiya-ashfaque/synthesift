@@ -190,20 +190,12 @@ export function DatasetLibrary() {
     >
       <div className="space-y-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--ss-primary)]">
-              DATA CATALOG
-            </p>
-            <h1 className="mt-1 text-2xl sm:text-[28px] font-semibold tracking-[-0.03em] text-[var(--ss-text)]">
-              Dataset library
-            </h1>
-            <p className="mt-1 text-sm text-[var(--ss-muted)]">
-              Batch-upload multi-format files and search every accessible dataset across your workspaces.
-            </p>
-          </div>
+          <h1 className="font-display text-4xl sm:text-[42px] leading-none text-[var(--ss-text)]">
+            Dataset <em className="italic text-[var(--ss-primary)]">library</em>
+          </h1>
           <Link
             href="/workbench"
-            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[var(--ss-primary)] px-4 text-xs font-semibold text-white no-underline hover:bg-[var(--ss-primary-hover)]"
+            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#930031] to-[#B60A43] px-4 text-xs font-semibold text-white no-underline shadow-[0_8px_20px_-8px_rgba(147,0,49,0.55)] hover:brightness-110 transition-all"
           >
             <span>Open Studio</span>
             <ArrowUpRight className="h-3.5 w-3.5" />
@@ -213,7 +205,7 @@ export function DatasetLibrary() {
         {error && (
           <p
             role="alert"
-            className="rounded-md border border-[var(--ss-danger)]/35 bg-[var(--ss-danger-wash)] px-4 py-2.5 text-xs text-[var(--ss-danger)]"
+            className="rounded-xl border border-[var(--ss-danger)]/35 bg-[var(--ss-danger-wash)] px-4 py-2.5 text-xs text-[var(--ss-danger)]"
           >
             {error}
           </p>
@@ -221,25 +213,20 @@ export function DatasetLibrary() {
         {notice && (
           <p
             role="status"
-            className="rounded-md border border-[var(--ss-primary-border)] bg-[var(--ss-primary-wash)] px-4 py-2.5 text-xs text-[var(--ss-primary)]"
+            className="rounded-xl border border-[var(--ss-primary-border)] bg-[var(--ss-primary-wash)] px-4 py-2.5 text-xs text-[var(--ss-primary)]"
           >
             {notice}
           </p>
         )}
 
-        {/* Batch Upload Card */}
+        {/* Batch Upload Surface */}
         <section
           aria-labelledby="ss-upload-heading"
-          className="rounded-lg border border-[var(--ss-border)] bg-[var(--ss-surface)] p-5 space-y-4"
+          className="rounded-[22px] border border-[var(--ss-border)] bg-[var(--ss-surface)] p-6 space-y-4 shadow-[0_14px_40px_-26px_rgba(147,0,49,0.12)]"
         >
-          <div>
-            <h2 id="ss-upload-heading" className="text-sm font-semibold text-[var(--ss-text)]">
-              Batch upload datasets
-            </h2>
-            <p className="text-xs text-[var(--ss-muted)]">
-              Select up to 10 CSV, TSV, Parquet, XLSX, or JSON/NDJSON files (10 MB max each).
-            </p>
-          </div>
+          <h2 id="ss-upload-heading" className="font-display text-2xl text-[var(--ss-text)]">
+            Batch upload
+          </h2>
           <form onSubmit={(event) => void submit(event)} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
             <label className="space-y-1 text-xs font-medium text-[var(--ss-muted)]">
               <span>Destination workspace</span>

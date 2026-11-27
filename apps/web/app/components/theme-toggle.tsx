@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useSyncExternalStore } from 'react';
+import { Monitor, Moon, Sun } from 'lucide-react';
 import { cn } from '@/lib/cn';
 
 type Theme = 'system' | 'light' | 'dark';
@@ -42,6 +43,12 @@ export function setAppTheme(next: Theme) {
   window.dispatchEvent(new Event(CHANGE_EVENT));
 }
 
+const ITEMS: ReadonlyArray<{ id: Theme; label: string; Icon: typeof Sun }> = [
+  { id: 'system', label: 'Auto', Icon: Monitor },
+  { id: 'light', label: 'Light', Icon: Sun },
+  { id: 'dark', label: 'Dark', Icon: Moon },
+];
+
 export function ThemeToggle() {
   const theme = useSyncExternalStore(subscribe, getStoredTheme, getServerTheme);
 
@@ -59,31 +66,31 @@ export function ThemeToggle() {
 
   return (
     <div
-      className="pt-3 mt-3 border-t border-[var(--ss-border)]"
+      className="inline-flex items-center gap-0.5 rounded-full border border-[var(--ss-border)] bg-[var(--ss-canvas)] p-0.5"
       role="group"
       aria-label="Appearance"
     >
-      <span className="block px-1 mb-1.5 font-mono text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--ss-subtle)]">
-        APPEARANCE
-      </span>
-      <div className="grid grid-cols-3 gap-0.5 p-0.5 rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)]">
-        {(['system', 'light', 'dark'] as const).map((item) => (
+      {ITEMS.map(({ id, label, Icon }) => {
+        const active = theme === id;
+        return (
           <button
-            key={item}
+            key={id}
             type="button"
+            title={label}
+            aria-label={label}
+            aria-pressed={active}
+            onClick={() => setAppTheme(id)}
             className={cn(
-              'py-1.5 text-[11px] font-medium rounded-[4px] transition-colors',
-              theme === item
-                ? 'bg-[var(--ss-surface)] text-[var(--ss-text)] shadow-xs font-semibold'
-                : 'text-[var(--ss-muted)] hover:text-[var(--ss-text)]',
+              'inline-flex h-7 w-7 items-center justify-center rounded-full transition-all',
+              active
+                ? 'bg-[var(--ss-surface)] text-[var(--ss-primary)] shadow-xs'
+                : 'text-[var(--ss-subtle)] hover:text-[var(--ss-text)]',
             )}
-            aria-pressed={theme === item}
-            onClick={() => setAppTheme(item)}
           >
-            {item === 'system' ? 'Auto' : item === 'light' ? 'Light' : 'Dark'}
+            <Icon className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" />
           </button>
-        ))}
-      </div>
+        );
+      })}
     </div>
   );
 }

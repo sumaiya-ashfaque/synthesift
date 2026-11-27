@@ -1,11 +1,19 @@
 import type { Metadata } from 'next';
-import { IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google';
+import { IBM_Plex_Mono, Instrument_Serif, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 
-const ibmSans = IBM_Plex_Sans({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-ibm-sans',
+  variable: '--font-ui-sans',
+  display: 'swap',
+});
+
+const instrumentSerif = Instrument_Serif({
+  subsets: ['latin'],
+  weight: ['400'],
+  style: ['normal', 'italic'],
+  variable: '--font-display-serif',
   display: 'swap',
 });
 
@@ -17,9 +25,9 @@ const ibmMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'SyntheSift — Precision Data Quality & Remediation Studio',
+  title: 'SyntheSift — Data Quality & Remediation Studio',
   description:
-    'Deterministic statistical profiling, DuckDB grid exploration, privacy-safe AI diagnostics, and auditable dataset remediation.',
+    'Deterministic profiling, DuckDB grid exploration, ML drift observability, YAML Data Contracts, and auditable dataset remediation.',
 };
 
 const themeBootScript = `
@@ -40,7 +48,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${ibmSans.variable} ${ibmMono.variable}`}
+      className={`${plusJakarta.variable} ${instrumentSerif.variable} ${ibmMono.variable}`}
       suppressHydrationWarning
     >
       <head>

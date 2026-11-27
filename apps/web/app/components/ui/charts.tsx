@@ -381,13 +381,26 @@ export function QualityDimensionBars({
 /**
  * Clean architectural SVG ring meter for overall composite quality score.
  */
-export function QualityScoreMeter({ score }: { score: number | null | undefined }) {
+export function QualityScoreMeter({
+  score,
+  inverted = false,
+}: {
+  score: number | null | undefined;
+  inverted?: boolean;
+}) {
   const safe = typeof score === 'number' && Number.isFinite(score) ? Math.max(0, Math.min(100, score)) : null;
   const radius = 34;
   const circumference = 2 * Math.PI * radius;
   const offset = safe !== null ? circumference * (1 - safe / 100) : circumference;
-  const stroke =
-    safe === null
+  const stroke = inverted
+    ? safe === null
+      ? 'rgba(255,255,255,0.25)'
+      : safe >= 88
+        ? '#BEDEFF'
+        : safe >= 70
+          ? '#FFA500'
+          : '#FFF2A7'
+    : safe === null
       ? 'var(--ss-border-strong)'
       : safe >= 88
         ? 'var(--ss-pass)'
@@ -396,14 +409,14 @@ export function QualityScoreMeter({ score }: { score: number | null | undefined 
           : 'var(--ss-danger)';
 
   return (
-    <div className="relative inline-flex items-center justify-center">
-      <svg width={84} height={84} viewBox="0 0 84 84" aria-label="Composite quality score">
+    <div className="relative inline-flex items-center justify-center shrink-0">
+      <svg width={82} height={82} viewBox="0 0 84 84" aria-label="Composite quality score">
         <circle
           cx={42}
           cy={42}
           r={radius}
           fill="none"
-          stroke="var(--ss-surface-subtle)"
+          stroke={inverted ? 'rgba(255,255,255,0.14)' : 'var(--ss-surface-subtle)'}
           strokeWidth={5}
         />
         <circle
@@ -412,18 +425,30 @@ export function QualityScoreMeter({ score }: { score: number | null | undefined 
           r={radius}
           fill="none"
           stroke={stroke}
-          strokeWidth={5}
-          strokeLinecap="butt"
+          strokeWidth={5.5}
+          strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
           transform="rotate(-90 42 42)"
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-mono text-lg font-semibold tabular-nums leading-none text-[var(--ss-text)]">
+        <span
+          className={
+            inverted
+              ? 'font-mono text-xl font-semibold tabular-nums leading-none text-white'
+              : 'font-mono text-lg font-semibold tabular-nums leading-none text-[var(--ss-text)]'
+          }
+        >
           {safe !== null ? safe.toFixed(0) : '—'}
         </span>
-        <span className="mt-0.5 font-mono text-[9px] uppercase tracking-wider text-[var(--ss-subtle)]">
+        <span
+          className={
+            inverted
+              ? 'mt-0.5 font-mono text-[9px] uppercase tracking-wider text-white/65'
+              : 'mt-0.5 font-mono text-[9px] uppercase tracking-wider text-[var(--ss-subtle)]'
+          }
+        >
           / 100
         </span>
       </div>

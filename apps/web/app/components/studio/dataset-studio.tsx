@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   ArrowUpRight,
   CheckCircle2,
+  ChevronRight,
   Columns3,
   FileSpreadsheet,
   FlaskConical,
@@ -79,19 +80,28 @@ type StudioTab =
   | 'evals'
   | 'history';
 
-const TABS: ReadonlyArray<{ id: StudioTab; label: string; Icon: typeof Activity }> = [
-  { id: 'overview', label: 'Overview', Icon: Activity },
-  { id: 'grid', label: 'Data grid', Icon: Table2 },
-  { id: 'columns', label: 'Columns', Icon: Columns3 },
-  { id: 'findings', label: 'Findings', Icon: AlertTriangle },
-  { id: 'pipeline', label: 'Pipeline', Icon: SlidersHorizontal },
-  { id: 'drift', label: 'Drift', Icon: GitCompareArrows },
-  { id: 'contracts', label: 'Contracts', Icon: ShieldCheck },
-  { id: 'lineage', label: 'Lineage', Icon: Network },
-  { id: 'analysis', label: 'AI & remediation', Icon: Sparkles },
-  { id: 'evals', label: 'AI evals', Icon: FlaskConical },
-  { id: 'history', label: 'History', Icon: GitBranch },
+type TabItem = {
+  id: StudioTab;
+  label: string;
+  group: 'Inspect' | 'Engineer' | 'Intelligence';
+  Icon: typeof Activity;
+};
+
+const TABS: ReadonlyArray<TabItem> = [
+  { id: 'overview', label: 'Overview', group: 'Inspect', Icon: Activity },
+  { id: 'grid', label: 'Data grid', group: 'Inspect', Icon: Table2 },
+  { id: 'columns', label: 'Columns', group: 'Inspect', Icon: Columns3 },
+  { id: 'findings', label: 'Findings', group: 'Inspect', Icon: AlertTriangle },
+  { id: 'pipeline', label: 'Pipeline', group: 'Engineer', Icon: SlidersHorizontal },
+  { id: 'drift', label: 'Drift', group: 'Engineer', Icon: GitCompareArrows },
+  { id: 'contracts', label: 'Contracts', group: 'Engineer', Icon: ShieldCheck },
+  { id: 'lineage', label: 'Lineage', group: 'Engineer', Icon: Network },
+  { id: 'analysis', label: 'AI & remediation', group: 'Intelligence', Icon: Sparkles },
+  { id: 'evals', label: 'AI evals', group: 'Intelligence', Icon: FlaskConical },
+  { id: 'history', label: 'History', group: 'Intelligence', Icon: GitBranch },
 ];
+
+const TAB_GROUPS: ReadonlyArray<TabItem['group']> = ['Inspect', 'Engineer', 'Intelligence'];
 
 type Details = {
   key: string;
@@ -323,7 +333,6 @@ export function DatasetStudio() {
   });
 
   const workspace = workspaces.find((item) => item.id === workspaceId);
-  const project = projects.find((item) => item.id === projectId);
   const dataset = datasets.find((item) => item.id === datasetId);
   const canEdit = workspace?.role === 'owner' || workspace?.role === 'editor';
   const profile = loaded?.profile?.status === 'ready' ? loaded.profile.result : undefined;
@@ -363,7 +372,7 @@ export function DatasetStudio() {
           ? [{ id: `dataset:${dataset.id}`, label: 'Dataset admitted', detail: `${dataset.filename} (${shortDigest(dataset.sha256)})`, date: dataset.created_at }]
           : []),
         ...(loaded?.profile?.completed_at
-          ? [{ id: 'profile', label: 'Profile completed', detail: profile?.engine ?? 'deterministic profiler', date: loaded.profile.completed_at }]
+          ? [{ id: 'profile', label: 'Profile completed', detail: `${formatNumber(profile?.row_count)} rows analyzed`, date: loaded.profile.completed_at }]
           : []),
         ...(loaded?.reports ?? []).map((r) => ({
           id: `report:${r.id}`,
@@ -378,7 +387,7 @@ export function DatasetStudio() {
           date: r.applied_at || r.created_at,
         })),
       ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
-    [dataset, loaded, profile?.engine],
+    [dataset, loaded, profile?.row_count],
   );
 
   async function runProfile(force = false) {
@@ -399,8 +408,8 @@ export function DatasetStudio() {
       );
       setNotice(
         res.status === 'ready'
-          ? 'Profile is up to date.'
-          : 'Profiling queued. Results will appear automatically.',
+          ? 'Profile refreshed.'
+          : 'Profiling started — updates stream live.',
       );
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Unable to start profiling.');
@@ -417,9 +426,9 @@ export function DatasetStudio() {
     try {
       const created = await seedDemoDatasets(workspaceId, projectId);
       await reloadDatasets(workspaceId, projectId, created[0]?.id);
-      setNotice(`Seeded ${created.length} pre-profiled multi-format demo datasets.`);
+      setNotice(`Loaded ${created.length} sample datasets.`);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Failed to seed demo datasets.');
+      setError(cause instanceof Error ? cause.message : 'Failed to load sample datasets.');
     } finally {
       setSeedingBusy(false);
     }
@@ -460,8 +469,8 @@ export function DatasetStudio() {
       })),
       ...TABS.map((t) => ({
         id: `tab-${t.id}`,
-        label: `Switch tab: ${t.label}`,
-        group: 'Studio',
+        label: `Switch view: ${t.label}`,
+        group: 'Workbench',
         onSelect: () => setTab(t.id),
       })),
     ],
@@ -471,7 +480,7 @@ export function DatasetStudio() {
   if (loading) {
     return (
       <main className="grid min-h-screen place-items-center bg-[var(--ss-canvas)] font-mono text-xs text-[var(--ss-muted)]" role="status">
-        Loading data workbench…
+        Loading studio…
       </main>
     );
   }
@@ -480,101 +489,25 @@ export function DatasetStudio() {
     <AppShell
       current="workbench"
       breadcrumb={[
-        { label: 'Workspaces', href: '/workspaces' },
-        ...(workspace ? [{ label: workspace.name, href: '/workspaces' }] : []),
-        { label: dataset?.filename ?? 'Data workbench' },
+        { label: workspace?.name ?? 'Workspaces', href: '/workspaces' },
+        { label: dataset?.filename ?? 'Workbench' },
       ]}
       account={account}
       onSignOut={() => void signOut()}
       quickJumps={quickJumps}
-      sidebarExtra={
-        workspace ? (
-          <div className="rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] p-3 space-y-1">
-            <span className="block font-mono text-[10px] tracking-[0.12em] uppercase text-[var(--ss-subtle)]">
-              ACTIVE CONTEXT
-            </span>
-            <p className="truncate text-xs font-semibold text-[var(--ss-text)]">{workspace.name}</p>
-            <p className="truncate text-[11px] text-[var(--ss-muted)]">
-              {project?.name ?? 'No project'}
-            </p>
-          </div>
-        ) : null
-      }
-      topbarActions={
-        <Link
-          href="/workspaces"
-          className="inline-flex items-center gap-1 rounded-md border border-[var(--ss-border)] bg-[var(--ss-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--ss-text)] hover:bg-[var(--ss-surface-hover)] no-underline"
-        >
-          <span>Workspaces</span>
-          <ArrowUpRight className="h-3.5 w-3.5 text-[var(--ss-muted)]" />
-        </Link>
-      }
     >
       <div className="space-y-6">
-        {/* Studio Header */}
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--ss-primary)]">
-              DATA INTELLIGENCE · STUDIO WORKBENCH
-            </p>
-            <h1 className="mt-1 text-2xl sm:text-[28px] font-semibold tracking-[-0.03em] text-[var(--ss-text)]">
-              Know your data.
-            </h1>
-            <p className="mt-1 text-sm text-[var(--ss-muted)]">
-              Inspect rows via DuckDB, audit statistical distributions and PII risk, and run evidence-grounded remediation.
-            </p>
-          </div>
+        <h1 className="sr-only">Know your data.</h1>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {canEdit && projectId && (
-              <button
-                type="button"
-                onClick={() => void handleSeedDemo()}
-                disabled={seedingBusy}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[var(--ss-border)] bg-[var(--ss-surface)] px-3 text-xs font-medium text-[var(--ss-text)] hover:bg-[var(--ss-surface-hover)] disabled:opacity-50"
-              >
-                <FileSpreadsheet className="h-3.5 w-3.5 text-[var(--ss-primary)]" />
-                <span>{seedingBusy ? 'Seeding demo…' : 'Load sample datasets'}</span>
-              </button>
-            )}
-            {canEdit && dataset?.status === 'ready' && (
-              <button
-                type="button"
-                onClick={() => void runProfile(Boolean(profile))}
-                disabled={profilingBusy || profilePending}
-                className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[var(--ss-primary)] px-3.5 text-xs font-semibold text-white hover:bg-[var(--ss-primary-hover)] disabled:opacity-50"
-              >
-                {profile ? (
-                  <RefreshCw className={cn('h-3.5 w-3.5', (profilingBusy || profilePending) && 'animate-spin')} />
-                ) : (
-                  <Play className="h-3.5 w-3.5" />
-                )}
-                <span>
-                  {profilePending
-                    ? 'Profiling…'
-                    : profile
-                      ? 'Re-run profile'
-                      : 'Run profiler'}
-                </span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Context Selector Bar */}
+        {/* Compact Inline Context Strip — Zero Nested Boxes */}
         <section
           aria-label="Dataset selection"
-          className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-lg border border-[var(--ss-border)] bg-[var(--ss-surface)] p-3.5"
+          className="flex flex-wrap items-center justify-between gap-3"
         >
-          <div className="space-y-1">
-            <label
-              htmlFor="ss-wb-workspace"
-              className="block font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--ss-subtle)]"
-            >
-              Workspace
-            </label>
+          <div className="flex flex-wrap items-center gap-2">
             <select
               id="ss-wb-workspace"
+              aria-label="Workspace"
               value={workspaceId}
               onChange={(e) => {
                 setWorkspaceId(e.target.value);
@@ -585,7 +518,7 @@ export function DatasetStudio() {
                 setDetails(null);
                 setGridColumnFilter(null);
               }}
-              className="h-9 w-full rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-2.5 text-xs font-medium text-[var(--ss-text)]"
+              className="h-9 rounded-full border border-[var(--ss-border-strong)]/80 bg-[var(--ss-surface)] px-3.5 text-xs font-medium text-[var(--ss-text)] shadow-2xs"
             >
               {!workspaces.length && <option value="">No workspaces</option>}
               {workspaces.map((item) => (
@@ -594,17 +527,12 @@ export function DatasetStudio() {
                 </option>
               ))}
             </select>
-          </div>
 
-          <div className="space-y-1">
-            <label
-              htmlFor="ss-wb-project"
-              className="block font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--ss-subtle)]"
-            >
-              Project
-            </label>
+            <ChevronRight className="h-3.5 w-3.5 text-[var(--ss-subtle)]" aria-hidden="true" />
+
             <select
               id="ss-wb-project"
+              aria-label="Project"
               value={projectId}
               disabled={!workspaceId}
               onChange={(e) => {
@@ -614,7 +542,7 @@ export function DatasetStudio() {
                 setDetails(null);
                 setGridColumnFilter(null);
               }}
-              className="h-9 w-full rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-2.5 text-xs font-medium text-[var(--ss-text)] disabled:opacity-50"
+              className="h-9 rounded-full border border-[var(--ss-border-strong)]/80 bg-[var(--ss-surface)] px-3.5 text-xs font-medium text-[var(--ss-text)] shadow-2xs disabled:opacity-50"
             >
               {!projects.length && <option value="">No projects</option>}
               {projects.map((item) => (
@@ -623,17 +551,12 @@ export function DatasetStudio() {
                 </option>
               ))}
             </select>
-          </div>
 
-          <div className="space-y-1">
-            <label
-              htmlFor="ss-wb-dataset"
-              className="block font-mono text-[10px] font-semibold uppercase tracking-wider text-[var(--ss-subtle)]"
-            >
-              Dataset
-            </label>
+            <ChevronRight className="h-3.5 w-3.5 text-[var(--ss-subtle)]" aria-hidden="true" />
+
             <select
               id="ss-wb-dataset"
+              aria-label="Dataset"
               value={datasetId}
               disabled={!projectId}
               onChange={(e) => {
@@ -643,7 +566,7 @@ export function DatasetStudio() {
                 setGridColumnFilter(null);
                 setInspectedColName(null);
               }}
-              className="h-9 w-full rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-2.5 font-mono text-xs text-[var(--ss-text)] disabled:opacity-50"
+              className="h-9 rounded-full border border-[var(--ss-primary-border)] bg-[var(--ss-surface)] px-3.5 font-mono text-xs font-semibold text-[var(--ss-primary)] shadow-2xs disabled:opacity-50"
             >
               {!datasets.length && <option value="">No datasets</option>}
               {datasets.map((item) => (
@@ -653,12 +576,43 @@ export function DatasetStudio() {
               ))}
             </select>
           </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {canEdit && projectId && (
+              <button
+                type="button"
+                onClick={() => void handleSeedDemo()}
+                disabled={seedingBusy}
+                className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[var(--ss-border-strong)]/80 bg-[var(--ss-surface)] px-3.5 text-xs font-medium text-[var(--ss-text)] hover:bg-[var(--ss-surface-hover)] disabled:opacity-50 transition-colors"
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5 text-[var(--ss-amber)]" />
+                <span>{seedingBusy ? 'Loading…' : 'Load sample datasets'}</span>
+              </button>
+            )}
+            {canEdit && dataset?.status === 'ready' && (
+              <button
+                type="button"
+                onClick={() => void runProfile(Boolean(profile))}
+                disabled={profilingBusy || profilePending}
+                className="inline-flex h-9 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#930031] to-[#B60A43] px-4 text-xs font-semibold text-white shadow-[0_8px_20px_-8px_rgba(147,0,49,0.6)] hover:brightness-110 disabled:opacity-50 transition-all"
+              >
+                {profile ? (
+                  <RefreshCw className={cn('h-3.5 w-3.5', (profilingBusy || profilePending) && 'animate-spin')} />
+                ) : (
+                  <Play className="h-3.5 w-3.5" />
+                )}
+                <span>
+                  {profilePending ? 'Profiling…' : profile ? 'Re-run profile' : 'Run profiler'}
+                </span>
+              </button>
+            )}
+          </div>
         </section>
 
         {error && (
           <div
             role="alert"
-            className="rounded-md border border-[var(--ss-danger)]/35 bg-[var(--ss-danger-wash)] px-4 py-2.5 text-xs text-[var(--ss-danger)]"
+            className="rounded-xl border border-[var(--ss-danger)]/35 bg-[var(--ss-danger-wash)] px-4 py-2.5 text-xs font-medium text-[var(--ss-danger)]"
           >
             {error}
           </div>
@@ -666,343 +620,311 @@ export function DatasetStudio() {
         {notice && (
           <div
             role="status"
-            className="rounded-md border border-[var(--ss-primary-border)] bg-[var(--ss-primary-wash)] px-4 py-2.5 text-xs text-[var(--ss-primary)]"
+            className="rounded-xl border border-[var(--ss-primary-border)] bg-[var(--ss-primary-wash)] px-4 py-2.5 text-xs font-medium text-[var(--ss-primary)]"
           >
             {notice}
           </div>
         )}
 
         {!dataset ? (
-          <section className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[var(--ss-border-strong)] bg-[var(--ss-surface)] px-6 py-16 text-center">
-            <div className="grid h-11 w-11 place-items-center rounded-lg border border-[var(--ss-border)] bg-[var(--ss-canvas)] text-[var(--ss-primary)]">
+          <section className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-[var(--ss-border-strong)] bg-[var(--ss-surface)]/80 px-6 py-20 text-center">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--ss-warn-wash)] text-[var(--ss-primary)]">
               <Table2 className="h-5 w-5" />
             </div>
-            <h2 className="mt-4 text-base font-semibold text-[var(--ss-text)]">
+            <h2 className="mt-4 font-display text-3xl text-[var(--ss-text)]">
               No dataset selected
             </h2>
-            <p className="mt-1 max-w-md text-xs text-[var(--ss-muted)]">
-              Upload a CSV, TSV, Parquet, Excel, or JSON dataset from your workspace — or load our realistic sample bundle right here.
-            </p>
             <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
               {canEdit && projectId && (
                 <button
                   type="button"
                   onClick={() => void handleSeedDemo()}
                   disabled={seedingBusy}
-                  className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[var(--ss-primary)] px-4 text-xs font-semibold text-white hover:bg-[var(--ss-primary-hover)]"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[var(--ss-primary)] px-5 text-xs font-semibold text-white hover:bg-[var(--ss-primary-hover)]"
                 >
                   <FileSpreadsheet className="h-3.5 w-3.5" />
-                  {seedingBusy ? 'Seeding…' : 'Load 3 sample datasets'}
+                  {seedingBusy ? 'Loading…' : 'Load 3 sample datasets'}
                 </button>
               )}
               <Link
                 href="/workspaces"
-                className="inline-flex h-9 items-center rounded-md border border-[var(--ss-border)] bg-[var(--ss-surface)] px-4 text-xs font-medium text-[var(--ss-text)] no-underline hover:bg-[var(--ss-surface-hover)]"
+                className="inline-flex h-10 items-center rounded-full border border-[var(--ss-border-strong)] bg-[var(--ss-surface)] px-5 text-xs font-medium text-[var(--ss-text)] no-underline hover:bg-[var(--ss-surface-hover)]"
               >
-                Go to your workspaces
+                Upload in workspaces
               </Link>
             </div>
           </section>
         ) : (
           <>
-            {/* Active Dataset Spec Line */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--ss-border)] bg-[var(--ss-surface)] px-4 py-3">
-              <div className="flex flex-wrap items-center gap-2.5 min-w-0">
-                <span className="rounded border border-[var(--ss-primary-border)] bg-[var(--ss-primary-wash)] px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase text-[var(--ss-primary)]">
-                  {(dataset.file_format ?? 'csv').toUpperCase()}
-                </span>
-                <strong className="truncate font-mono text-sm font-semibold text-[var(--ss-text)]">
-                  {dataset.filename}
-                </strong>
-                <span
-                  className={cn(
-                    'rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase',
-                    dataset.status === 'ready'
-                      ? 'bg-[var(--ss-pass-wash)] text-[var(--ss-pass)]'
-                      : dataset.status === 'failed'
-                        ? 'bg-[var(--ss-danger-wash)] text-[var(--ss-danger)]'
-                        : 'bg-[var(--ss-warn-wash)] text-[var(--ss-warn)]',
-                  )}
-                >
-                  {dataset.status}
-                </span>
-                {sseConnected && (
-                  <span
-                    className="inline-flex items-center gap-1 rounded-full border border-[var(--ss-primary-border)] bg-[var(--ss-primary-wash)] px-2 py-0.5 font-mono text-[10px] font-semibold uppercase text-[var(--ss-primary)]"
-                    title="Real-time Server-Sent Events stream active"
-                  >
-                    <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
-                    LIVE SSE
-                  </span>
-                )}
-              </div>
+            {/* Unified Sculpted Venetian Burgundy Hero Strip — replaces 4 stacked boxes */}
+            <section
+              aria-label="Dataset metrics"
+              className="ss-burgundy-stage relative overflow-hidden rounded-[22px] p-5 sm:p-6 text-white shadow-[0_24px_60px_-24px_rgba(147,0,49,0.45)]"
+            >
+              <div className="relative z-10 flex flex-wrap items-center justify-between gap-6">
+                {/* Left Identity & PII Quick Action */}
+                <div className="min-w-0 space-y-2.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-[#FFF2A7] px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[#740026]">
+                      {(dataset.file_format ?? 'csv').toUpperCase()}
+                    </span>
+                    <span className="rounded-full bg-[#BEDEFF]/20 border border-[#BEDEFF]/35 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase text-[#BEDEFF]">
+                      {dataset.status}
+                    </span>
+                    {sseConnected && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#FFA500]/25 border border-[#FFA500]/50 px-2.5 py-0.5 font-mono text-[10px] font-semibold uppercase text-[#FFF2A7]">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#FFA500] animate-pulse" />
+                        LIVE
+                      </span>
+                    )}
+                    <span className="font-mono text-[11px] text-white/65 tabular-nums">
+                      {formatBytes(dataset.size_bytes)}
+                      {dataset.sha256 ? ` · ${shortDigest(dataset.sha256)}` : ''}
+                    </span>
+                  </div>
 
-              <div className="flex flex-wrap items-center gap-4 font-mono text-[11px] text-[var(--ss-muted)] tabular-nums">
-                <span>{formatBytes(dataset.size_bytes)}</span>
-                {dataset.sha256 && <span title={dataset.sha256}>sha256:{shortDigest(dataset.sha256)}</span>}
-                {profile?.engine && <span className="text-[var(--ss-subtle)]">{profile.engine}</span>}
+                  <h2 className="truncate font-display text-3xl sm:text-[36px] leading-none text-white">
+                    {dataset.filename}
+                  </h2>
+
+                  {(profile?.pii_summary?.flagged_columns ?? 0) > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setTab('grid')}
+                      className="inline-flex items-center gap-2 rounded-full border border-[#FFA500]/55 bg-black/25 px-3 py-1 text-xs font-medium text-[#FFF2A7] hover:bg-black/40 transition-colors"
+                    >
+                      <Lock className="h-3 w-3 text-[#FFA500]" />
+                      <span>
+                        {profile?.pii_summary?.flagged_columns} PII column(s) masked ({formatNumber(profile?.pii_summary?.total_matches)} cells)
+                      </span>
+                      <ArrowUpRight className="h-3 w-3 text-[#BEDEFF]" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Right Live Telemetry + Score Ring */}
+                <div className="flex flex-wrap items-center gap-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 sm:gap-6 font-mono">
+                    <div>
+                      <span className="block text-[10px] uppercase tracking-wider text-white/60">Rows</span>
+                      <strong className="mt-1 block text-xl font-semibold tabular-nums text-white">
+                        {formatNumber(profile?.row_count ?? dataset.row_count)}
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] uppercase tracking-wider text-white/60">Columns</span>
+                      <strong className="mt-1 block text-xl font-semibold tabular-nums text-white">
+                        {formatNumber(profile?.column_count ?? dataset.column_count)}
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] uppercase tracking-wider text-white/60">Complete</span>
+                      <strong className="mt-1 block text-xl font-semibold tabular-nums text-[#BEDEFF]">
+                        {formatPercent(quality?.completeness_percent)}
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="block text-[10px] uppercase tracking-wider text-white/60">Duplicates</span>
+                      <strong className="mt-1 block text-xl font-semibold tabular-nums text-[#FFF2A7]">
+                        {formatNumber(quality?.duplicate_rows ?? profile?.duplicate_rows)}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <QualityScoreMeter
+                    score={quality?.overall_score ?? quality?.completeness_percent}
+                    inverted
+                  />
+                </div>
               </div>
-            </div>
+            </section>
 
             {detailsLoading && !loaded && (
               <p className="font-mono text-xs text-[var(--ss-muted)]" role="status">
-                Loading saved dataset analysis…
+                Loading analysis…
               </p>
             )}
             {loaded?.errors.map((message) => (
               <p
                 key={message}
-                className="rounded-md border border-[var(--ss-warn)]/35 bg-[var(--ss-warn-wash)] px-3.5 py-2 text-xs text-[var(--ss-warn)]"
+                className="rounded-xl border border-[var(--ss-amber)]/45 bg-[var(--ss-warn-wash)] px-4 py-2.5 text-xs text-[var(--ss-warn)]"
                 role="status"
               >
                 {message}
               </p>
             ))}
 
-            {/* 4-Card KPI Strip */}
-            <section
-              aria-label="Dataset metrics"
-              className="grid grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-[var(--ss-border)] overflow-hidden rounded-lg border border-[var(--ss-border)] bg-[var(--ss-surface)]"
-            >
-              <div className="p-4">
-                <span className="block font-mono text-[10px] uppercase tracking-wider text-[var(--ss-subtle)]">
-                  Rows
-                </span>
-                <strong className="mt-1.5 block font-mono text-2xl font-semibold tracking-tight tabular-nums text-[var(--ss-text)]">
-                  {formatNumber(profile?.row_count ?? dataset.row_count)}
-                </strong>
-                <small className="mt-1 block text-[11px] text-[var(--ss-muted)]">
-                  Immutable source rows
-                </small>
-              </div>
-              <div className="p-4">
-                <span className="block font-mono text-[10px] uppercase tracking-wider text-[var(--ss-subtle)]">
-                  Columns
-                </span>
-                <strong className="mt-1.5 block font-mono text-2xl font-semibold tracking-tight tabular-nums text-[var(--ss-text)]">
-                  {formatNumber(profile?.column_count ?? dataset.column_count)}
-                </strong>
-                <small className="mt-1 block text-[11px] text-[var(--ss-muted)]">
-                  Inferred schema fields
-                </small>
-              </div>
-              <div className="p-4">
-                <span className="block font-mono text-[10px] uppercase tracking-wider text-[var(--ss-subtle)]">
-                  Completeness
-                </span>
-                <strong className="mt-1.5 block font-mono text-2xl font-semibold tracking-tight tabular-nums text-[var(--ss-text)]">
-                  {formatPercent(quality?.completeness_percent)}
-                </strong>
-                <small className="mt-1 block text-[11px] text-[var(--ss-muted)]">
-                  {profile ? `${formatNumber(profile.missing_cells)} missing cells` : 'From saved profile'}
-                </small>
-              </div>
-              <div className="p-4">
-                <span className="block font-mono text-[10px] uppercase tracking-wider text-[var(--ss-subtle)]">
-                  Exact duplicates
-                </span>
-                <strong className="mt-1.5 block font-mono text-2xl font-semibold tracking-tight tabular-nums text-[var(--ss-text)]">
-                  {formatNumber(quality?.duplicate_rows ?? profile?.duplicate_rows)}
-                </strong>
-                <small className="mt-1 block text-[11px] text-[var(--ss-muted)]">
-                  {profile?.pii_summary?.flagged_columns
-                    ? `${profile.pii_summary.flagged_columns} PII column(s) flagged`
-                    : 'Zero PII columns flagged'}
-                </small>
-              </div>
-            </section>
-
-            {/* Studio Tabbed Surface */}
+            {/* Spatial 2-Column Workbench: Clean Vertical Grouped Tool Rail (NO horizontal scrollbar!) + Open Canvas */}
             <section
               aria-label="Dataset workbench"
-              className="overflow-hidden rounded-lg border border-[var(--ss-border)] bg-[var(--ss-surface)]"
+              className="grid grid-cols-1 lg:grid-cols-[204px_minmax(0,1fr)] gap-6 items-start"
             >
+              {/* Vertical Studio Rail (Desktop) / Clean Wrap Pill Group (Mobile) */}
               <div
                 role="tablist"
                 aria-label="Dataset sections"
-                className="flex items-center gap-1 overflow-x-auto border-b border-[var(--ss-border)] px-4"
+                className="lg:sticky lg:top-24 flex flex-wrap lg:flex-col gap-1.5 lg:gap-5"
               >
-                {TABS.map(({ id, label, Icon }) => {
-                  const selected = tab === id;
-                  const count =
-                    id === 'findings'
-                      ? quality?.findings.length
-                      : id === 'columns'
-                        ? profile?.columns.length
-                        : undefined;
-                  return (
-                    <button
-                      key={id}
-                      id={`ss-tab-${id}`}
-                      type="button"
-                      role="tab"
-                      aria-controls={`ss-panel-${id}`}
-                      aria-selected={selected}
-                      onClick={() => {
-                        setTab(id);
-                        setQuery('');
-                      }}
-                      className={cn(
-                        'relative inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-3.5 text-xs font-medium transition-colors',
-                        selected
-                          ? 'text-[var(--ss-primary)] font-semibold'
-                          : 'text-[var(--ss-muted)] hover:text-[var(--ss-text)]',
-                      )}
-                    >
-                      <Icon className="h-3.5 w-3.5" strokeWidth={1.7} aria-hidden="true" />
-                      <span>{label}</span>
-                      {typeof count === 'number' && (
-                        <span
-                          aria-hidden={id === 'columns' ? true : undefined}
-                          className="rounded bg-[var(--ss-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-[var(--ss-muted)]"
+                {TAB_GROUPS.map((groupName) => (
+                  <div key={groupName} className="contents lg:block lg:space-y-1">
+                    <span className="hidden lg:block px-3 pb-1 font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--ss-subtle)]">
+                      {groupName}
+                    </span>
+                    {TABS.filter((t) => t.group === groupName).map(({ id, label, Icon }) => {
+                      const selected = tab === id;
+                      const count =
+                        id === 'findings'
+                          ? quality?.findings.length
+                          : id === 'columns'
+                            ? profile?.columns.length
+                            : undefined;
+                      return (
+                        <button
+                          key={id}
+                          id={`ss-tab-${id}`}
+                          type="button"
+                          role="tab"
+                          aria-controls={`ss-panel-${id}`}
+                          aria-selected={selected}
+                          onClick={() => {
+                            setTab(id);
+                            setQuery('');
+                          }}
+                          className={cn(
+                            'inline-flex lg:w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-xs transition-all',
+                            selected
+                              ? 'bg-[var(--ss-primary)] text-white font-semibold shadow-[0_8px_18px_-8px_rgba(147,0,49,0.65)]'
+                              : 'text-[var(--ss-muted)] hover:bg-[var(--ss-surface)] hover:text-[var(--ss-text)] font-medium',
+                          )}
                         >
-                          {count}
-                        </span>
-                      )}
-                      {selected && (
-                        <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-[var(--ss-primary)]" />
-                      )}
-                    </button>
-                  );
-                })}
+                          <span className="inline-flex items-center gap-2.5 min-w-0">
+                            <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} aria-hidden="true" />
+                            <span className="truncate">{label}</span>
+                          </span>
+                          {typeof count === 'number' && (
+                            <span
+                              aria-hidden={id === 'columns' ? true : undefined}
+                              className={cn(
+                                'rounded-full px-1.5 py-0.5 font-mono text-[10px] tabular-nums',
+                                selected
+                                  ? 'bg-white/20 text-[#FFF2A7]'
+                                  : 'bg-[var(--ss-surface-subtle)] text-[var(--ss-muted)]',
+                              )}
+                            >
+                              {count}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
 
+              {/* Active Tool Surface — Clean Single Canvas (No Nested Box Soup) */}
               <div
                 id={`ss-panel-${tab}`}
                 role="tabpanel"
                 aria-labelledby={`ss-tab-${tab}`}
-                className="p-5 lg:p-6"
+                className="min-w-0 rounded-[22px] border border-[var(--ss-border)] bg-[var(--ss-surface)] p-5 sm:p-7 shadow-[0_18px_50px_-30px_rgba(147,0,49,0.16)]"
               >
                 {/* TAB 1: OVERVIEW */}
                 {tab === 'overview' && (
-                  <div className="space-y-6">
+                  <div>
                     {profile ? (
-                      <>
-                        {/* PII Alert Callout */}
-                        {(profile.pii_summary?.flagged_columns ?? 0) > 0 && (
-                          <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[var(--ss-pii)]/30 bg-[var(--ss-pii-wash)] px-4 py-3">
-                            <div className="flex items-start gap-2.5">
-                              <Lock className="h-4 w-4 shrink-0 text-[var(--ss-pii)] mt-0.5" />
-                              <div className="text-xs">
-                                <strong className="text-[var(--ss-text)]">
-                                  Privacy Guard Active · {profile.pii_summary?.flagged_columns} sensitive column(s) detected
-                                </strong>
-                                <p className="mt-0.5 text-[var(--ss-muted)]">
-                                  Types: {(profile.pii_summary?.kinds ?? []).join(', ').replaceAll('_', ' ')} ({formatNumber(profile.pii_summary?.total_matches)} cells). Masked by default in Data Grid and stripped from Gemini egress.
-                                </p>
+                      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 xl:gap-0 xl:divide-x xl:divide-[var(--ss-border)]">
+                        {/* Left: 5-Dimension Breakdown (Open Surface, Zero Nested Card) */}
+                        <div className="xl:col-span-7 xl:pr-8 space-y-5">
+                          <div className="flex items-baseline justify-between">
+                            <h3 className="font-display text-2xl text-[var(--ss-text)]">
+                              Quality breakdown
+                            </h3>
+                            <span className="font-mono text-xs text-[var(--ss-subtle)] tabular-nums">
+                              {formatNumber(profile.missing_cells)} missing cells
+                            </span>
+                          </div>
+
+                          {quality?.dimensions ? (
+                            <QualityDimensionBars dimensions={quality.dimensions} />
+                          ) : (
+                            <div className="space-y-3">
+                              <div className="flex justify-between text-xs">
+                                <span>Completeness</span>
+                                <strong className="font-mono">{formatPercent(quality?.completeness_percent)}</strong>
                               </div>
+                              <div className="h-2 rounded-full bg-[var(--ss-surface-subtle)] overflow-hidden">
+                                <div
+                                  className="h-full bg-[var(--ss-primary)]"
+                                  style={{ width: `${Math.max(0, Math.min(100, quality?.completeness_percent ?? 0))}%` }}
+                                />
+                              </div>
+                              <p className="text-xs text-[var(--ss-muted)]">
+                                Click <strong>Re-run profile</strong> above to compute distributions, PII scanning, and 5-dimension scores.
+                              </p>
                             </div>
+                          )}
+                        </div>
+
+                        {/* Right: Correlations + Quick Navigation Links */}
+                        <div className="xl:col-span-5 xl:pl-8 flex flex-col justify-between gap-7">
+                          <div className="space-y-4">
+                            <h3 className="font-display text-2xl text-[var(--ss-text)]">
+                              Correlations
+                            </h3>
+                            <CorrelationHeatmap pairs={profile.correlations ?? []} />
+                          </div>
+
+                          <div className="border-t border-[var(--ss-border)] pt-5 divide-y divide-[var(--ss-border)]">
                             <button
                               type="button"
-                              onClick={() => setTab('grid')}
-                              className="inline-flex items-center gap-1 rounded-md border border-[var(--ss-pii)]/35 bg-[var(--ss-surface)] px-2.5 py-1.5 font-mono text-[11px] font-medium text-[var(--ss-pii)] hover:opacity-90"
+                              onClick={() => setTab('findings')}
+                              className="flex w-full items-center justify-between py-2.5 text-left text-xs hover:text-[var(--ss-primary)] transition-colors"
                             >
-                              Open masked Grid
-                              <ArrowUpRight className="h-3 w-3" />
+                              <span className="font-medium text-[var(--ss-muted)]">Quality findings</span>
+                              <span className="inline-flex items-center gap-1.5 font-mono font-semibold tabular-nums text-[var(--ss-text)]">
+                                {formatNumber(quality?.findings.length ?? 0)}
+                                <ArrowUpRight className="h-3.5 w-3.5 text-[var(--ss-primary)]" />
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setTab('analysis')}
+                              className="flex w-full items-center justify-between py-2.5 text-left text-xs hover:text-[var(--ss-primary)] transition-colors"
+                            >
+                              <span className="font-medium text-[var(--ss-muted)]">AI reviews</span>
+                              <span className="inline-flex items-center gap-1.5 font-mono font-semibold tabular-nums text-[var(--ss-text)]">
+                                {formatNumber(loaded?.reports.length ?? 0)}
+                                <ArrowUpRight className="h-3.5 w-3.5 text-[var(--ss-primary)]" />
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setTab('pipeline')}
+                              className="flex w-full items-center justify-between py-2.5 text-left text-xs hover:text-[var(--ss-primary)] transition-colors"
+                            >
+                              <span className="font-medium text-[var(--ss-muted)]">Remediation runs</span>
+                              <span className="inline-flex items-center gap-1.5 font-mono font-semibold tabular-nums text-[var(--ss-text)]">
+                                {formatNumber(loaded?.runs.length ?? 0)}
+                                <ArrowUpRight className="h-3.5 w-3.5 text-[var(--ss-primary)]" />
+                              </span>
                             </button>
                           </div>
-                        )}
-
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                          {/* Left: Composite Score & 5 Transparent Dimensions */}
-                          <div className="lg:col-span-7 rounded-lg border border-[var(--ss-border)] bg-[var(--ss-canvas)]/60 p-5 space-y-5">
-                            <div className="flex items-center justify-between gap-4">
-                              <div>
-                                <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--ss-subtle)]">
-                                  TRANSPARENT QUALITY INDEX
-                                </span>
-                                <h2 className="mt-0.5 text-base font-semibold text-[var(--ss-text)]">
-                                  5-Dimension Quality Breakdown
-                                </h2>
-                                <p className="mt-0.5 text-xs text-[var(--ss-muted)]">
-                                  Deterministic weighted score; never replaces issue-level review.
-                                </p>
-                              </div>
-                              <QualityScoreMeter score={quality?.overall_score ?? quality?.completeness_percent} />
-                            </div>
-
-                            {quality?.dimensions ? (
-                              <QualityDimensionBars dimensions={quality.dimensions} />
-                            ) : (
-                              <div className="space-y-2">
-                                <div className="flex justify-between text-xs">
-                                  <span>Observed completeness</span>
-                                  <strong className="font-mono">{formatPercent(quality?.completeness_percent)}</strong>
-                                </div>
-                                <div className="h-2 rounded-full bg-[var(--ss-surface-subtle)] overflow-hidden">
-                                  <div
-                                    className="h-full bg-[var(--ss-primary)]"
-                                    style={{ width: `${Math.max(0, Math.min(100, quality?.completeness_percent ?? 0))}%` }}
-                                  />
-                                </div>
-                                <p className="text-xs text-[var(--ss-muted)]">
-                                  Click <strong>Re-run profile</strong> above to compute distributions, PII scanning, and 5-dimension scores.
-                                </p>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Right: Correlations + Quick Findings Summary */}
-                          <div className="lg:col-span-5 flex flex-col gap-5">
-                            <div className="rounded-lg border border-[var(--ss-border)] bg-[var(--ss-canvas)]/60 p-5 space-y-3">
-                              <div>
-                                <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--ss-subtle)]">
-                                  NUMERIC RELATIONSHIPS
-                                </span>
-                                <h3 className="mt-0.5 text-sm font-semibold text-[var(--ss-text)]">
-                                  Pearson Correlations
-                                </h3>
-                              </div>
-                              <CorrelationHeatmap pairs={profile.correlations ?? []} />
-                            </div>
-
-                            <div className="rounded-lg border border-[var(--ss-border)] bg-[var(--ss-canvas)]/60 p-5">
-                              <span className="font-mono text-[10px] uppercase tracking-wider text-[var(--ss-subtle)]">
-                                ACTIVITY SUMMARY
-                              </span>
-                              <div className="mt-3 grid grid-cols-3 gap-2">
-                                <div className="rounded border border-[var(--ss-border)] bg-[var(--ss-surface)] p-2.5">
-                                  <span className="block font-mono text-[10px] text-[var(--ss-subtle)]">FINDINGS</span>
-                                  <strong className="mt-0.5 block font-mono text-lg tabular-nums">
-                                    {formatNumber(quality?.findings.length ?? 0)}
-                                  </strong>
-                                </div>
-                                <div className="rounded border border-[var(--ss-border)] bg-[var(--ss-surface)] p-2.5">
-                                  <span className="block font-mono text-[10px] text-[var(--ss-subtle)]">AI RUNS</span>
-                                  <strong className="mt-0.5 block font-mono text-lg tabular-nums">
-                                    {formatNumber(loaded?.reports.length ?? 0)}
-                                  </strong>
-                                </div>
-                                <div className="rounded border border-[var(--ss-border)] bg-[var(--ss-surface)] p-2.5">
-                                  <span className="block font-mono text-[10px] text-[var(--ss-subtle)]">REMED.</span>
-                                  <strong className="mt-0.5 block font-mono text-lg tabular-nums">
-                                    {formatNumber(loaded?.runs.length ?? 0)}
-                                  </strong>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
                         </div>
-                      </>
+                      </div>
                     ) : (
-                      <div className="rounded-lg border border-dashed border-[var(--ss-border-strong)] p-8 text-center space-y-3">
-                        <h3 className="text-sm font-semibold text-[var(--ss-text)]">
+                      <div className="py-12 text-center space-y-3">
+                        <h3 className="font-display text-2xl text-[var(--ss-text)]">
                           Profile not available
                         </h3>
-                        <p className="text-xs text-[var(--ss-muted)]">
-                          {profilePending
-                            ? 'Profiling is currently running in the background. This panel updates automatically.'
-                            : 'Run the deterministic Polars/DuckDB profiler to inspect distributions, PII risks, and quality dimensions.'}
-                        </p>
                         {canEdit && !profilePending && dataset.status === 'ready' && (
                           <button
                             type="button"
                             onClick={() => void runProfile(false)}
                             disabled={profilingBusy}
-                            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-[var(--ss-primary)] px-4 text-xs font-semibold text-white hover:bg-[var(--ss-primary-hover)]"
+                            className="inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--ss-primary)] px-5 text-xs font-semibold text-white hover:bg-[var(--ss-primary-hover)]"
                           >
                             <Play className="h-3.5 w-3.5" />
-                            Run profiler now
+                            Run profiler
                           </button>
                         )}
                       </div>
@@ -1034,37 +956,30 @@ export function DatasetStudio() {
                 {tab === 'columns' && (
                   <div className="space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <h2 className="text-sm font-semibold text-[var(--ss-text)]">
-                          Column explorer
-                        </h2>
-                        <p className="text-xs text-[var(--ss-muted)]">
-                          Click any column row to open the full quantile, histogram, and pattern-shape drawer.
-                        </p>
-                      </div>
+                      <h3 className="font-display text-2xl text-[var(--ss-text)]">Columns</h3>
                       <div className="relative">
-                        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ss-subtle)]" />
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ss-subtle)]" />
                         <input
                           value={query}
                           onChange={(e) => setQuery(e.target.value)}
                           placeholder="Find a column…"
                           aria-label="Search columns"
-                          className="h-8 w-56 rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] pl-8 pr-3 text-xs"
+                          className="h-9 w-56 rounded-full border border-[var(--ss-border)] bg-[var(--ss-canvas)] pl-9 pr-3 text-xs"
                         />
                       </div>
                     </div>
 
                     {filteredColumns.length ? (
-                      <div className="overflow-x-auto rounded-lg border border-[var(--ss-border)]">
+                      <div className="overflow-x-auto">
                         <table className="w-full border-collapse text-left text-xs">
-                          <thead className="border-b border-[var(--ss-border)] bg-[var(--ss-surface-subtle)] font-mono text-[10px] uppercase tracking-wider text-[var(--ss-muted)]">
+                          <thead className="border-b border-[var(--ss-border)] font-mono text-[10px] uppercase tracking-wider text-[var(--ss-subtle)]">
                             <tr>
-                              <th scope="col" className="px-3.5 py-2.5">Column</th>
-                              <th scope="col" className="px-3.5 py-2.5">Type / Domain</th>
-                              <th scope="col" className="px-3.5 py-2.5">Missing</th>
-                              <th scope="col" className="px-3.5 py-2.5">Distinct</th>
-                              <th scope="col" className="px-3.5 py-2.5">Distribution</th>
-                              <th scope="col" className="px-3.5 py-2.5">Signals</th>
+                              <th scope="col" className="px-3 py-2.5">Column</th>
+                              <th scope="col" className="px-3 py-2.5">Type</th>
+                              <th scope="col" className="px-3 py-2.5">Missing</th>
+                              <th scope="col" className="px-3 py-2.5">Distinct</th>
+                              <th scope="col" className="px-3 py-2.5">Distribution</th>
+                              <th scope="col" className="px-3 py-2.5">Signals</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-[var(--ss-border)]">
@@ -1082,14 +997,14 @@ export function DatasetStudio() {
                                 <tr
                                   key={col.name}
                                   onClick={() => setInspectedColName(col.name)}
-                                  className="cursor-pointer hover:bg-[var(--ss-surface-hover)] transition-colors"
+                                  className="cursor-pointer hover:bg-[var(--ss-surface-hover)]/75 transition-colors"
                                 >
-                                  <td className="px-3.5 py-3 font-mono font-semibold text-[var(--ss-text)]">
+                                  <td className="px-3 py-3 font-mono font-semibold text-[var(--ss-text)]">
                                     {col.name}
                                   </td>
-                                  <td className="px-3.5 py-3">
+                                  <td className="px-3 py-3">
                                     <div className="flex flex-wrap items-center gap-1.5">
-                                      <span className="rounded border border-[var(--ss-border)] bg-[var(--ss-surface-subtle)] px-1.5 py-0.5 font-mono text-[10px]">
+                                      <span className="rounded-full bg-[var(--ss-surface-subtle)] px-2 py-0.5 font-mono text-[10px] text-[var(--ss-pass)]">
                                         {col.inferred_type}
                                       </span>
                                       {col.semantic_type && col.semantic_type !== col.inferred_type && (
@@ -1099,16 +1014,16 @@ export function DatasetStudio() {
                                       )}
                                     </div>
                                   </td>
-                                  <td className="px-3.5 py-3 font-mono tabular-nums">
+                                  <td className="px-3 py-3 font-mono tabular-nums">
                                     {formatNumber(col.missing_count)}{' '}
                                     <span className="text-[var(--ss-subtle)]">
                                       ({formatPercent(col.missing_percent)})
                                     </span>
                                   </td>
-                                  <td className="px-3.5 py-3 font-mono tabular-nums">
+                                  <td className="px-3 py-3 font-mono tabular-nums">
                                     {col.distinct_count !== null ? formatNumber(col.distinct_count) : '>2,048'}
                                   </td>
-                                  <td className="px-3.5 py-3">
+                                  <td className="px-3 py-3">
                                     {col.distribution?.histogram?.length ? (
                                       <MiniHistogramSparkline bins={col.distribution.histogram} width={84} height={20} />
                                     ) : col.numeric ? (
@@ -1119,14 +1034,14 @@ export function DatasetStudio() {
                                       <span className="text-[var(--ss-subtle)]">—</span>
                                     )}
                                   </td>
-                                  <td className="px-3.5 py-3">
+                                  <td className="px-3 py-3">
                                     <div className="flex flex-wrap gap-1">
                                       {signals.length ? (
                                         signals.map((sig) => (
                                           <span
                                             key={sig}
                                             className={cn(
-                                              'rounded px-1.5 py-0.5 font-mono text-[10px] font-medium',
+                                              'rounded-full px-2 py-0.5 font-mono text-[10px] font-medium',
                                               sig === 'PII'
                                                 ? 'bg-[var(--ss-pii-wash)] text-[var(--ss-pii)]'
                                                 : 'bg-[var(--ss-warn-wash)] text-[var(--ss-warn)]',
@@ -1161,20 +1076,13 @@ export function DatasetStudio() {
                 {tab === 'findings' && (
                   <div className="space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <h2 className="text-sm font-semibold text-[var(--ss-text)]">
-                          Quality findings
-                        </h2>
-                        <p className="text-xs text-[var(--ss-muted)]">
-                          Deterministic observations with direct drill-down into affected Data Grid rows.
-                        </p>
-                      </div>
+                      <h3 className="font-display text-2xl text-[var(--ss-text)]">Findings</h3>
                       <div className="flex items-center gap-2">
                         <select
                           aria-label="Filter by severity"
                           value={severity}
                           onChange={(e) => setSeverity(e.target.value)}
-                          className="h-8 rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-2.5 text-xs"
+                          className="h-9 rounded-full border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-3 text-xs"
                         >
                           <option value="all">All severity</option>
                           <option value="high">High</option>
@@ -1186,13 +1094,13 @@ export function DatasetStudio() {
                           value={query}
                           onChange={(e) => setQuery(e.target.value)}
                           placeholder="Search findings…"
-                          className="h-8 w-48 rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-2.5 text-xs"
+                          className="h-9 w-48 rounded-full border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-3.5 text-xs"
                         />
                       </div>
                     </div>
 
                     {filteredFindings.length ? (
-                      <ul className="divide-y divide-[var(--ss-border)] rounded-lg border border-[var(--ss-border)]">
+                      <ul className="divide-y divide-[var(--ss-border)]">
                         {filteredFindings.map((finding, idx) => {
                           const opMap: Record<string, string> = {
                             empty_column: 'is_null',
@@ -1207,12 +1115,12 @@ export function DatasetStudio() {
                           return (
                             <li
                               key={`${finding.code}:${finding.column}:${idx}`}
-                              className="flex flex-wrap items-start justify-between gap-4 p-4"
+                              className="flex flex-wrap items-start justify-between gap-4 py-4"
                             >
                               <div className="flex items-start gap-3 min-w-0">
                                 <span
                                   className={cn(
-                                    'mt-0.5 inline-block w-16 shrink-0 rounded py-0.5 text-center font-mono text-[10px] font-semibold uppercase',
+                                    'mt-0.5 inline-block w-16 shrink-0 rounded-full py-0.5 text-center font-mono text-[10px] font-semibold uppercase',
                                     finding.severity === 'high'
                                       ? 'bg-[var(--ss-danger-wash)] text-[var(--ss-danger)]'
                                       : finding.severity === 'warning'
@@ -1230,11 +1138,6 @@ export function DatasetStudio() {
                                     <code className="text-[10px] text-[var(--ss-subtle)]">
                                       {finding.code}
                                     </code>
-                                    {finding.dimension && (
-                                      <span className="rounded border border-[var(--ss-border)] px-1.5 py-px font-mono text-[9px] uppercase text-[var(--ss-muted)]">
-                                        {finding.dimension.replaceAll('_', ' ')}
-                                      </span>
-                                    )}
                                   </div>
                                   <p className="mt-1 text-xs leading-relaxed text-[var(--ss-muted)]">
                                     {finding.message}
@@ -1246,7 +1149,7 @@ export function DatasetStudio() {
                                 <button
                                   type="button"
                                   onClick={() => jumpToGridFilter(finding.column!, jumpOp)}
-                                  className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-2.5 py-1.5 font-mono text-[11px] font-medium text-[var(--ss-text)] hover:border-[var(--ss-primary)] hover:text-[var(--ss-primary)]"
+                                  className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[var(--ss-border-strong)] bg-[var(--ss-canvas)] px-3 py-1 font-mono text-[11px] font-medium text-[var(--ss-text)] hover:border-[var(--ss-primary)] hover:text-[var(--ss-primary)]"
                                 >
                                   Inspect rows
                                   <ArrowUpRight className="h-3 w-3" />
@@ -1264,7 +1167,7 @@ export function DatasetStudio() {
                   </div>
                 )}
 
-                {/* TAB 5: VISUAL TRANSFORMATION PIPELINE */}
+                {/* TAB 5: PIPELINE */}
                 {tab === 'pipeline' && (
                   dataset.status === 'ready' ? (
                     <PipelineBuilder
@@ -1288,12 +1191,12 @@ export function DatasetStudio() {
                     />
                   ) : (
                     <p className="py-10 text-center text-xs text-[var(--ss-muted)]">
-                      Dataset must reach READY status before building transformation pipelines.
+                      Dataset must reach READY status before building pipelines.
                     </p>
                   )
                 )}
 
-                {/* TAB: ML DRIFT DETECTION */}
+                {/* TAB 6: DRIFT */}
                 {tab === 'drift' && (
                   <DriftInspector
                     workspaceId={workspaceId}
@@ -1303,7 +1206,7 @@ export function DatasetStudio() {
                   />
                 )}
 
-                {/* TAB: DECLARATIVE DATA CONTRACTS */}
+                {/* TAB 7: CONTRACTS */}
                 {tab === 'contracts' && (
                   <ContractsPanel
                     key={`${workspaceId}:${projectId}:${dataset.id}`}
@@ -1316,7 +1219,7 @@ export function DatasetStudio() {
                   />
                 )}
 
-                {/* TAB 6: INTERACTIVE LINEAGE DAG */}
+                {/* TAB 8: LINEAGE */}
                 {tab === 'lineage' && (
                   <LineageDag
                     workspaceId={workspaceId}
@@ -1332,7 +1235,7 @@ export function DatasetStudio() {
                   />
                 )}
 
-                {/* TAB 7: AI ANALYSIS & REMEDIATION */}
+                {/* TAB 9: AI & REMEDIATION */}
                 {tab === 'analysis' && (
                   profile ? (
                     <AIRemediationPanel
@@ -1352,15 +1255,13 @@ export function DatasetStudio() {
                       }}
                     />
                   ) : (
-                    <div className="py-10 text-center space-y-2">
-                      <p className="text-xs text-[var(--ss-muted)]">
-                        Complete deterministic profiling before running privacy-safe AI analysis or remediation.
-                      </p>
-                    </div>
+                    <p className="py-10 text-center text-xs text-[var(--ss-muted)]">
+                      Run profiling first to unlock AI analysis.
+                    </p>
                   )
                 )}
 
-                {/* TAB: AI EVAL WORKBENCH */}
+                {/* TAB 10: AI EVALS */}
                 {tab === 'evals' && (
                   <AIEvalWorkbench
                     key={`${workspaceId}:${projectId}`}
@@ -1369,17 +1270,10 @@ export function DatasetStudio() {
                   />
                 )}
 
-                {/* TAB 6: LINEAGE & ACTIVITY */}
+                {/* TAB 11: HISTORY */}
                 {tab === 'history' && (
-                  <div className="space-y-4">
-                    <div>
-                      <h2 className="text-sm font-semibold text-[var(--ss-text)]">
-                        Recorded provenance & activity
-                      </h2>
-                      <p className="text-xs text-[var(--ss-muted)]">
-                        Immutable timeline assembled from admission, profiling, AI evaluations, and approved remediations.
-                      </p>
-                    </div>
+                  <div className="space-y-5">
+                    <h3 className="font-display text-2xl text-[var(--ss-text)]">Activity & provenance</h3>
 
                     {history.length ? (
                       <ol className="relative ml-2 border-l border-[var(--ss-border-strong)] pl-6 space-y-5">
@@ -1387,7 +1281,7 @@ export function DatasetStudio() {
                           <li key={entry.id} className="relative">
                             <span
                               aria-hidden="true"
-                              className="absolute -left-[29px] top-1 h-2.5 w-2.5 rounded-full border-2 border-[var(--ss-primary)] bg-[var(--ss-surface)]"
+                              className="absolute -left-[29px] top-1 h-2.5 w-2.5 rounded-full border-2 border-[var(--ss-primary)] bg-[var(--ss-warn-wash)]"
                             />
                             <div className="flex flex-wrap items-baseline justify-between gap-2">
                               <strong className="text-xs font-semibold text-[var(--ss-text)]">

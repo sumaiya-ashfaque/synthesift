@@ -437,19 +437,11 @@ ${contractLine}            -F "min_quality_score=${gateMinScore || '80'}" \\
       onSignOut={() => void signOut()}
     >
       <div className="space-y-6">
-        {/* Header */}
+        {/* Editorial Header */}
         <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--ss-primary)]">
-              DEVOPS · ENTERPRISE GOVERNANCE & AUTOMATION
-            </p>
-            <h1 className="mt-1 text-2xl sm:text-[28px] font-semibold tracking-[-0.03em] text-[var(--ss-text)]">
-              CI/CD Gates, API Tokens & Audit Trail
-            </h1>
-            <p className="mt-1 text-sm text-[var(--ss-muted)]">
-              Mint SHA-256 hashed workspace Personal Access Tokens, gate pull requests against quality & PII policies, configure HMAC-signed webhooks, and inspect immutable governance logs.
-            </p>
-          </div>
+          <h1 className="font-display text-4xl sm:text-[42px] leading-none text-[var(--ss-text)]">
+            CI/CD Gates &amp; <em className="italic text-[var(--ss-primary)]">Governance</em>
+          </h1>
 
           <div className="flex flex-wrap items-center gap-2">
             <select
@@ -461,7 +453,7 @@ ${contractLine}            -F "min_quality_score=${gateMinScore || '80'}" \\
                 setFreshWebhook(null);
                 setGateVerdict(null);
               }}
-              className="h-9 rounded-md border border-[var(--ss-border)] bg-[var(--ss-surface)] px-3 text-xs font-medium text-[var(--ss-text)]"
+              className="h-9 rounded-full border border-[var(--ss-border-strong)] bg-[var(--ss-surface)] px-3.5 text-xs font-medium text-[var(--ss-text)]"
             >
               {workspaces.map((w) => (
                 <option key={w.id} value={w.id}>
@@ -490,11 +482,11 @@ ${contractLine}            -F "min_quality_score=${gateMinScore || '80'}" \\
         )}
 
         {/* Tab Surface */}
-        <section className="overflow-hidden rounded-lg border border-[var(--ss-border)] bg-[var(--ss-surface)]">
+        <section className="overflow-hidden rounded-[22px] border border-[var(--ss-border)] bg-[var(--ss-surface)] shadow-[0_18px_50px_-30px_rgba(147,0,49,0.14)]">
           <div
             role="tablist"
             aria-label="Governance sections"
-            className="flex items-center gap-1 overflow-x-auto border-b border-[var(--ss-border)] px-4"
+            className="flex flex-wrap items-center gap-1.5 border-b border-[var(--ss-border)] bg-[var(--ss-canvas)]/55 px-5 py-3"
           >
             {(
               [
@@ -512,17 +504,14 @@ ${contractLine}            -F "min_quality_score=${gateMinScore || '80'}" \\
                   aria-selected={selected}
                   onClick={() => setTab(id)}
                   className={cn(
-                    'relative inline-flex items-center gap-1.5 whitespace-nowrap px-3.5 py-3.5 text-xs font-medium transition-colors',
+                    'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs transition-all',
                     selected
-                      ? 'text-[var(--ss-primary)] font-semibold'
-                      : 'text-[var(--ss-muted)] hover:text-[var(--ss-text)]',
+                      ? 'bg-[var(--ss-primary)] text-white font-semibold shadow-xs'
+                      : 'text-[var(--ss-muted)] hover:bg-[var(--ss-surface)] hover:text-[var(--ss-text)] font-medium',
                   )}
                 >
                   <Icon className="h-3.5 w-3.5" />
                   <span>{label}</span>
-                  {selected && (
-                    <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-[var(--ss-primary)]" />
-                  )}
                 </button>
               );
             })}

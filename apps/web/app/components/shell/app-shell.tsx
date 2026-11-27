@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { Brand } from '@/app/components/brand';
 import { ProductNavigation } from '@/app/components/product-navigation';
-import { setAppTheme } from '@/app/components/theme-toggle';
+import { setAppTheme, ThemeToggle } from '@/app/components/theme-toggle';
 import type { Account } from '@/lib/client-api';
 
 export type ShellNavKey = 'overview' | 'library' | 'workbench' | 'governance' | 'manage-data';
@@ -73,84 +73,68 @@ export function AppShell({
     fn();
   };
 
+  const initials = (account?.username || account?.email || 'SS').slice(0, 2).toUpperCase();
+
   return (
-    <div className="min-h-screen grid grid-cols-1 md:grid-cols-[240px_minmax(0,1fr)] bg-[var(--ss-canvas)] text-[var(--ss-text)]">
-      {/* Left Precision Instrument Rail */}
-      <aside
-        className="flex flex-col border-b md:border-b-0 md:border-r border-[var(--ss-border)] bg-[var(--ss-surface)]"
-        aria-label="Workspace navigation"
-      >
-        <div className="ss-palette-bar" aria-hidden="true" />
-        <div className="flex h-14 items-center justify-between px-4 border-b border-[var(--ss-border)]">
-          <Brand />
-          <button
-            type="button"
-            onClick={() => setCmdOpen(true)}
-            title="Command palette (Ctrl+K)"
-            className="hidden md:inline-flex items-center gap-1 rounded border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--ss-muted)] hover:border-[var(--ss-border-strong)] hover:text-[var(--ss-text)]"
-          >
-            <span>⌘K</span>
-          </button>
-        </div>
+    <div className="ss-studio-canvas min-h-screen flex flex-col text-[var(--ss-text)]">
+      {/* Razor-sharp 4-color editorial accent bar */}
+      <div className="ss-palette-bar sticky top-0 z-40" aria-hidden="true" />
 
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5">
-          <ProductNavigation current={current} />
-          {sidebarExtra}
-        </div>
-
-        <div className="hidden md:flex items-center justify-between px-4 py-3 border-t border-[var(--ss-border)] bg-[var(--ss-surface-subtle)]/55 font-mono text-[10px] text-[var(--ss-muted)]">
-          <span>DUCKDB · POLARS</span>
-          <span className="inline-flex items-center gap-1 rounded bg-[var(--ss-pass-wash)] px-1.5 py-0.5 font-semibold text-[var(--ss-pass)]">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--ss-amber)]" />
-            LIVE
-          </span>
-        </div>
-      </aside>
-
-      {/* Main Workspace Column */}
-      <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-[var(--ss-border)] bg-[var(--ss-surface)]/95 px-5 lg:px-8 backdrop-blur-xs">
-          <div className="flex items-center gap-1.5 min-w-0 text-xs text-[var(--ss-muted)]">
-            {breadcrumb.map((crumb, idx) => (
-              <span key={`${crumb.label}-${idx}`} className="flex items-center gap-1.5 min-w-0">
-                {idx > 0 && (
-                  <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[var(--ss-subtle)]" aria-hidden="true" />
-                )}
-                {crumb.href ? (
-                  <Link
-                    href={crumb.href}
-                    className="truncate text-[var(--ss-muted)] hover:text-[var(--ss-text)] no-underline"
-                  >
-                    {crumb.label}
-                  </Link>
-                ) : (
-                  <strong className="truncate font-semibold text-[var(--ss-text)]">
-                    {crumb.label}
-                  </strong>
-                )}
-              </span>
-            ))}
+      {/* Full-Width Floating Top Command Dock — replaces generic sidebar */}
+      <header className="sticky top-[3px] z-30 border-b border-[var(--ss-border)]/85 bg-[var(--ss-surface)]/86 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-[1460px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-10">
+          <div className="flex items-center gap-4 min-w-0">
+            <Brand />
+            {breadcrumb.length > 0 && (
+              <div className="hidden 2xl:flex items-center gap-1.5 border-l border-[var(--ss-border)] pl-4 text-xs text-[var(--ss-muted)] min-w-0">
+                {breadcrumb.map((crumb, idx) => (
+                  <span key={`${crumb.label}-${idx}`} className="flex items-center gap-1.5 min-w-0">
+                    {idx > 0 && (
+                      <ChevronRight className="h-3 w-3 shrink-0 text-[var(--ss-subtle)]" aria-hidden="true" />
+                    )}
+                    {crumb.href ? (
+                      <Link
+                        href={crumb.href}
+                        className="truncate text-[var(--ss-muted)] hover:text-[var(--ss-primary)] no-underline"
+                      >
+                        {crumb.label}
+                      </Link>
+                    ) : (
+                      <span className="truncate font-medium text-[var(--ss-text)]">{crumb.label}</span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          {/* Center Floating Pill Navigation */}
+          <div className="hidden lg:flex items-center justify-center">
+            <ProductNavigation current={current} />
+          </div>
+
+          {/* Right Utility Controls */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => setCmdOpen(true)}
-              className="hidden sm:inline-flex items-center gap-2 rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-2.5 py-1 text-xs text-[var(--ss-muted)] hover:border-[var(--ss-border-strong)] hover:text-[var(--ss-text)]"
+              title="Command palette (Ctrl+K)"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-3 text-xs text-[var(--ss-muted)] hover:border-[var(--ss-primary-border)] hover:text-[var(--ss-text)] transition-colors"
             >
               <Search className="h-3.5 w-3.5" strokeWidth={1.7} />
-              <span>Quick jump…</span>
               <kbd className="font-mono text-[10px] text-[var(--ss-subtle)]">⌘K</kbd>
             </button>
+
+            <ThemeToggle />
 
             {topbarActions}
 
             {account && (
               <span
-                className="hidden lg:inline-block max-w-[200px] truncate font-mono text-[11px] text-[var(--ss-muted)]"
                 title={account.email || account.username}
+                className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-full bg-[var(--ss-warn-wash)] border border-[var(--ss-amber)]/40 font-mono text-[11px] font-semibold text-[var(--ss-burgundy)]"
               >
-                {account.email || account.username}
+                {initials}
               </span>
             )}
 
@@ -158,27 +142,42 @@ export function AppShell({
               <button
                 type="button"
                 onClick={onSignOut}
-                className="inline-flex items-center gap-1.5 rounded-md border border-[var(--ss-border)] bg-[var(--ss-surface)] px-2.5 py-1.5 text-xs font-medium text-[var(--ss-text)] hover:bg-[var(--ss-surface-hover)]"
+                title="Sign out"
+                aria-label="Sign out"
+                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-[var(--ss-border)] bg-[var(--ss-surface)] px-2.5 text-xs font-medium text-[var(--ss-muted)] hover:border-[var(--ss-primary-border)] hover:text-[var(--ss-primary)] transition-colors"
               >
-                <LogOut className="h-3.5 w-3.5 text-[var(--ss-muted)]" strokeWidth={1.6} />
-                <span>Sign out</span>
+                <LogOut className="h-3.5 w-3.5" strokeWidth={1.7} />
+                <span className="hidden xl:inline">Sign out</span>
               </button>
             )}
           </div>
-        </header>
+        </div>
 
-        <main
-          id="main-content"
-          className="flex-1 w-full max-w-[1520px] mx-auto px-5 lg:px-8 py-6 lg:py-8"
-        >
-          {children}
-        </main>
-      </div>
+        {/* Mobile / Tablet Compact Pill Bar */}
+        <div className="lg:hidden border-t border-[var(--ss-border)]/70 px-4 py-2 overflow-x-auto ss-no-scrollbar">
+          <ProductNavigation current={current} />
+        </div>
+      </header>
+
+      {/* Main Full-Bleed Architectural Workspace */}
+      <main
+        id="main-content"
+        className="flex-1 w-full max-w-[1460px] mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-8"
+      >
+        {sidebarExtra ? (
+          <div className="grid grid-cols-1 lg:grid-cols-[224px_minmax(0,1fr)] gap-8 items-start">
+            <aside className="lg:sticky lg:top-24">{sidebarExtra}</aside>
+            <div className="min-w-0">{children}</div>
+          </div>
+        ) : (
+          children
+        )}
+      </main>
 
       {/* Global Command Palette (Ctrl/Cmd+K) */}
       {cmdOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center bg-black/45 pt-[14vh] px-4 backdrop-blur-[1px]"
+          className="fixed inset-0 z-50 flex items-start justify-center bg-black/45 pt-[14vh] px-4 backdrop-blur-[2px]"
           onClick={() => setCmdOpen(false)}
           role="dialog"
           aria-modal="true"
@@ -196,35 +195,35 @@ export function AppShell({
                   <Command.Item onSelect={() => runCmd(() => router.push('/workspaces'))}>
                     <span className="flex items-center gap-2">
                       <FolderKanban className="h-3.5 w-3.5 text-[var(--ss-muted)]" />
-                      Workspace overview
+                      Overview
                     </span>
                     <span className="font-mono text-[10px] text-[var(--ss-subtle)]">/workspaces</span>
                   </Command.Item>
                   <Command.Item onSelect={() => runCmd(() => router.push('/workbench'))}>
                     <span className="flex items-center gap-2">
                       <Layers className="h-3.5 w-3.5 text-[var(--ss-muted)]" />
-                      Dataset Studio & Data Grid
+                      Data workbench
                     </span>
                     <span className="font-mono text-[10px] text-[var(--ss-subtle)]">/workbench</span>
                   </Command.Item>
                   <Command.Item onSelect={() => runCmd(() => router.push('/dataset-library'))}>
                     <span className="flex items-center gap-2">
                       <Database className="h-3.5 w-3.5 text-[var(--ss-muted)]" />
-                      Dataset Catalog
+                      Dataset library
                     </span>
                     <span className="font-mono text-[10px] text-[var(--ss-subtle)]">/dataset-library</span>
                   </Command.Item>
                   <Command.Item onSelect={() => runCmd(() => router.push('/governance'))}>
                     <span className="flex items-center gap-2">
                       <KeyRound className="h-3.5 w-3.5 text-[var(--ss-muted)]" />
-                      CI/CD Gates, Tokens & Audit Trail
+                      CI/CD & Governance
                     </span>
                     <span className="font-mono text-[10px] text-[var(--ss-subtle)]">/governance</span>
                   </Command.Item>
                   <Command.Item onSelect={() => runCmd(() => router.push('/manage-data'))}>
                     <span className="flex items-center gap-2">
                       <ShieldCheck className="h-3.5 w-3.5 text-[var(--ss-muted)]" />
-                      Governance & Team Access
+                      Manage data
                     </span>
                     <span className="font-mono text-[10px] text-[var(--ss-subtle)]">/manage-data</span>
                   </Command.Item>
@@ -249,13 +248,13 @@ export function AppShell({
                   <Command.Item onSelect={() => runCmd(() => setAppTheme('light'))}>
                     <span className="flex items-center gap-2">
                       <Sun className="h-3.5 w-3.5 text-[var(--ss-amber)]" />
-                      Switch to Light (Sky & Burgundy)
+                      Light mode
                     </span>
                   </Command.Item>
                   <Command.Item onSelect={() => runCmd(() => setAppTheme('dark'))}>
                     <span className="flex items-center gap-2">
                       <Moon className="h-3.5 w-3.5 text-[var(--ss-muted)]" />
-                      Switch to Dark (Obsidian & Amber)
+                      Dark mode
                     </span>
                   </Command.Item>
                 </Command.Group>

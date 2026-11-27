@@ -347,22 +347,14 @@ export function ResourceManagement() {
       ]}
     >
       <div className="space-y-6 max-w-4xl">
-        <div>
-          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--ss-primary)]">
-            WORKSPACE GOVERNANCE & RBAC
-          </p>
-          <h1 className="mt-1 text-2xl sm:text-[28px] font-semibold tracking-[-0.03em] text-[var(--ss-text)]">
-            Manage data
-          </h1>
-          <p className="mt-1 text-sm text-[var(--ss-muted)]">
-            Control workspace member permissions and permanently delete workspaces, projects, or datasets with typed confirmation.
-          </p>
-        </div>
+        <h1 className="font-display text-4xl sm:text-[42px] leading-none text-[var(--ss-text)]">
+          Access &amp; <em className="italic text-[var(--ss-primary)]">retention</em>
+        </h1>
 
         {error && (
           <p
             role="alert"
-            className="rounded-md border border-[var(--ss-danger)]/35 bg-[var(--ss-danger-wash)] px-4 py-2.5 text-xs text-[var(--ss-danger)]"
+            className="rounded-xl border border-[var(--ss-danger)]/35 bg-[var(--ss-danger-wash)] px-4 py-2.5 text-xs text-[var(--ss-danger)]"
           >
             {error}
           </p>
@@ -371,7 +363,7 @@ export function ResourceManagement() {
         {/* Workspace Selection & Deletion */}
         <section
           aria-labelledby="ss-workspace-manage-title"
-          className="rounded-lg border border-[var(--ss-border)] bg-[var(--ss-surface)] p-5 space-y-4"
+          className="rounded-[22px] border border-[var(--ss-border)] bg-[var(--ss-surface)] p-6 space-y-4 shadow-[0_14px_40px_-26px_rgba(147,0,49,0.12)]"
         >
           <h2 id="ss-workspace-manage-title" className="text-sm font-semibold text-[var(--ss-text)]">
             Workspace

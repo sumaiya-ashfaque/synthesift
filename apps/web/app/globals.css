@@ -17,18 +17,18 @@ html[data-theme='light'] {
   --ss-amber: #ffa500;
   --ss-burgundy: #930031;
 
-  /* Surfaces & sky-tinted architectural paper */
-  --ss-canvas: #eef5fc;
+  /* Surfaces & luminous editorial paper */
+  --ss-canvas: #f4f8fd;
   --ss-surface: #ffffff;
-  --ss-surface-subtle: #e0effe;
-  --ss-surface-hover: #fff9d6;
-  --ss-border: #c5defa;
-  --ss-border-strong: #9bc4f5;
+  --ss-surface-subtle: #e5f1fe;
+  --ss-surface-hover: #fff9db;
+  --ss-border: #d4e5fb;
+  --ss-border-strong: #a8ccf7;
 
   /* Deep plum-ink typography (harmonized with #930031 & #BEDEFF) */
   --ss-text: #1c1118;
-  --ss-muted: #513f4a;
-  --ss-subtle: #786470;
+  --ss-muted: #55424e;
+  --ss-subtle: #806c78;
 
   /* Primary brand action: Imperial Burgundy (#930031) */
   --ss-primary: #930031;
@@ -47,7 +47,8 @@ html[data-theme='light'] {
   --ss-pii: #6b0f47;
   --ss-pii-wash: #f8e2ef;
 
-  --ss-font-sans: var(--font-ibm-sans), "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ss-font-sans: var(--font-ui-sans), "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ss-font-display: var(--font-display-serif), "Instrument Serif", Georgia, serif;
   --ss-font-mono: var(--font-ibm-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 
@@ -194,6 +195,37 @@ html[data-theme='dark'] .ss-auth-backdrop {
     radial-gradient(circle at 14% 88%, rgba(190, 222, 255, 0.24) 0%, transparent 48%),
     radial-gradient(circle at 52% 48%, rgba(255, 242, 167, 0.10) 0%, transparent 58%),
     linear-gradient(148deg, #4b0019 0%, #930031 54%, #6a0023 100%);
+}
+
+/* Editorial serif display helper */
+.font-display {
+  font-family: var(--ss-font-display);
+  font-weight: 400;
+  letter-spacing: -0.015em;
+}
+
+/* Soft ambient studio canvas */
+.ss-studio-canvas {
+  background:
+    radial-gradient(ellipse 60% 42% at 92% 0%, rgba(255, 242, 167, 0.42) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 40% at 8% 0%, rgba(190, 222, 255, 0.50) 0%, transparent 65%),
+    var(--ss-canvas);
+}
+
+html[data-theme='dark'] .ss-studio-canvas {
+  background:
+    radial-gradient(ellipse 55% 38% at 92% 0%, rgba(255, 165, 0, 0.08) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 38% at 8% 0%, rgba(147, 0, 49, 0.22) 0%, transparent 65%),
+    var(--ss-canvas);
+}
+
+/* Hide scrollbars cleanly where custom scroll strips are needed */
+.ss-no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.ss-no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 .tabular-nums {

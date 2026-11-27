@@ -242,31 +242,10 @@ export function WorkspaceDashboard() {
       }
     >
       <div className="space-y-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--ss-primary)]">
-              WORKSPACE OVERVIEW
-            </p>
-            <h1 className="mt-1 text-2xl sm:text-[28px] font-semibold tracking-[-0.03em] text-[var(--ss-text)]">
-              {workspace?.name ?? 'Your workspaces'}
-            </h1>
-            <p className="mt-1 text-sm text-[var(--ss-muted)]">
-              {workspace
-                ? 'Organize projects, ingest multi-format tabular datasets, and launch datasets into the Studio.'
-                : 'Create a workspace in the left rail to start organizing projects.'}
-            </p>
-          </div>
-          {workspace && (
-            <span className="rounded-full border border-[var(--ss-primary-border)] bg-[var(--ss-primary-wash)] px-3 py-1 font-mono text-[11px] font-semibold uppercase text-[var(--ss-primary)]">
-              {workspace.role}
-            </span>
-          )}
-        </div>
-
         {error && (
           <p
             role="alert"
-            className="rounded-md border border-[var(--ss-danger)]/35 bg-[var(--ss-danger-wash)] px-4 py-2.5 text-xs text-[var(--ss-danger)]"
+            className="rounded-xl border border-[var(--ss-danger)]/35 bg-[var(--ss-danger-wash)] px-4 py-2.5 text-xs text-[var(--ss-danger)]"
           >
             {error}
           </p>
@@ -274,70 +253,57 @@ export function WorkspaceDashboard() {
 
         {workspace ? (
           <>
-            {/* 3-Card Workspace KPI Strip */}
+            {/* Sculpted Burgundy Workspace Header Strip — replaces generic 3-box KPI cards */}
             <section
               aria-label="Workspace details"
-              className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[var(--ss-border)] overflow-hidden rounded-lg border border-[var(--ss-border)] bg-[var(--ss-surface)]"
+              className="ss-burgundy-stage relative overflow-hidden rounded-[22px] p-6 text-white shadow-[0_24px_60px_-24px_rgba(147,0,49,0.45)]"
             >
-              <div className="p-4">
-                <span className="block font-mono text-[10px] uppercase tracking-wider text-[var(--ss-subtle)]">
-                  Projects
-                </span>
-                <strong className="mt-1.5 block font-mono text-2xl font-semibold tabular-nums">
-                  {projectsLoading ? '—' : projects.length}
-                </strong>
-                <small className="mt-1 block text-[11px] text-[var(--ss-muted)]">
-                  Active in workspace
-                </small>
-              </div>
-              <div className="p-4">
-                <span className="block font-mono text-[10px] uppercase tracking-wider text-[var(--ss-subtle)]">
-                  Your access
-                </span>
-                <strong className="mt-1.5 block text-lg font-semibold capitalize">
-                  {workspace.role}
-                </strong>
-                <small className="mt-1 block text-[11px] text-[var(--ss-muted)]">
-                  Role-based permission tier
-                </small>
-              </div>
-              <div className="p-4">
-                <span className="block font-mono text-[10px] uppercase tracking-wider text-[var(--ss-subtle)]">
-                  Created
-                </span>
-                <strong className="mt-1.5 block font-mono text-lg font-semibold tabular-nums">
-                  {workspace.created_at
-                    ? new Date(workspace.created_at).toLocaleDateString(undefined, {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      })
-                    : '—'}
-                </strong>
-                <small className="mt-1 block text-[11px] text-[var(--ss-muted)]">
-                  Immutable workspace ledger
-                </small>
+              <div className="flex flex-wrap items-center justify-between gap-6">
+                <div className="space-y-1.5">
+                  <span className="inline-block rounded-full bg-[#FFF2A7] px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-[#740026]">
+                    {workspace.role}
+                  </span>
+                  <h1 className="font-display text-4xl sm:text-[42px] leading-none text-white">
+                    {workspace.name}
+                  </h1>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-8 font-mono">
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-wider text-white/60">Projects</span>
+                    <strong className="mt-1 block text-2xl font-semibold tabular-nums text-[#BEDEFF]">
+                      {projectsLoading ? '—' : projects.length}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="block text-[10px] uppercase tracking-wider text-white/60">Created</span>
+                    <strong className="mt-1 block text-base font-semibold tabular-nums text-[#FFF2A7]">
+                      {workspace.created_at
+                        ? new Date(workspace.created_at).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })
+                        : '—'}
+                    </strong>
+                  </div>
+                </div>
               </div>
             </section>
 
             {/* Projects Panel */}
             <section
               aria-labelledby="ss-project-title"
-              className="overflow-hidden rounded-lg border border-[var(--ss-border)] bg-[var(--ss-surface)]"
+              className="overflow-hidden rounded-[22px] border border-[var(--ss-border)] bg-[var(--ss-surface)] shadow-[0_14px_40px_-26px_rgba(147,0,49,0.12)]"
             >
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--ss-border)] px-5 py-4">
-                <div>
-                  <h2 id="ss-project-title" className="text-sm font-semibold text-[var(--ss-text)]">
-                    Projects
-                  </h2>
-                  <p className="text-xs text-[var(--ss-muted)]">
-                    Select a project to manage its datasets or launch any dataset into the Studio.
-                  </p>
-                </div>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--ss-border)] px-6 py-4">
+                <h2 id="ss-project-title" className="font-display text-2xl text-[var(--ss-text)]">
+                  Projects
+                </h2>
                 {workspace.role !== 'viewer' && (
                   <a
                     href="#ss-create-project"
-                    className="inline-flex h-8 items-center gap-1 rounded-md border border-[var(--ss-border)] bg-[var(--ss-canvas)] px-2.5 text-xs font-medium text-[var(--ss-text)] no-underline hover:bg-[var(--ss-surface-hover)]"
+                    className="inline-flex h-8 items-center gap-1 rounded-full border border-[var(--ss-border-strong)] bg-[var(--ss-canvas)] px-3.5 text-xs font-medium text-[var(--ss-text)] no-underline hover:bg-[var(--ss-surface-hover)]"
                   >
                     <Plus className="h-3.5 w-3.5 text-[var(--ss-primary)]" />
                     <span>New project</span>
